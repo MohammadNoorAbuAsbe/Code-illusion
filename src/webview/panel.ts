@@ -21,26 +21,48 @@ function webviewContent(panel: vscode.WebviewPanel, extensionUri: vscode.Uri): s
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${panel.webview.cspSource} https:; style-src ${panel.webview.cspSource} 'unsafe-inline'; script-src ${panel.webview.cspSource} 'nonce-${nonce}'; worker-src ${panel.webview.cspSource};" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${panel.webview.cspSource} https:; style-src ${panel.webview.cspSource} 'unsafe-inline'; script-src ${panel.webview.cspSource} 'nonce-${nonce}';" />
   <link rel="stylesheet" href="${styleUri}" />
   <title>De-cluttered View</title>
 </head>
 <body>
   <div id="app">
-    <section id="code-pane">
+    <section id="code-pane" role="region" aria-label="Original code">
       <div class="pane-header">Original Code</div>
       <div id="code-lines"></div>
     </section>
-    <section id="cards-pane">
+    <section id="cards-pane" role="region" aria-label="De-cluttered cards">
       <div class="pane-header">
         De-cluttered Cards
-        <span id="coverage-badge"></span>
+        <span id="coverage-badge" aria-live="polite"></span>
         <span class="pane-actions">
-          <button id="collapse-all" title="Collapse all code">⊟</button>
-          <button id="expand-all" title="Expand all code">⊞</button>
+          <button id="collapse-all" title="Collapse all code" aria-label="Collapse all code">⊟</button>
+          <button id="expand-all" title="Expand all code" aria-label="Expand all code">⊞</button>
         </span>
       </div>
+      <div id="status-bar" class="status-bar is-hidden" role="status" aria-live="polite"></div>
+      <div id="filter-bar" class="filter-bar is-hidden">
+        <input type="search" id="search-input" class="search-input" placeholder="Filter cards by name, kind, or label..." aria-label="Filter cards by text">
+        <span class="filter-chips" role="group" aria-label="Annotation status filter">
+          <button class="filter-chip active" data-status="all" aria-label="Show all cards">All</button>
+          <button class="filter-chip" data-status="annotated" aria-label="Show annotated only">Annotated</button>
+          <button class="filter-chip" data-status="missing" aria-label="Show missing only">Missing</button>
+        </span>
+        <select id="sort-select" class="filter-select" aria-label="Sort cards">
+          <option value="order">Source order</option>
+          <option value="kind">By kind</option>
+          <option value="name">By name</option>
+          <option value="lines">By lines</option>
+        </select>
+        <select id="kind-select" class="filter-select" aria-label="Filter by block kind">
+          <option value="">All kinds</option>
+        </select>
+      </div>
       <div id="story-banner" hidden></div>
+      <div id="cards-overlay" class="state-overlay is-hidden" aria-live="polite">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Analyzing...</div>
+      </div>
       <div id="cards"></div>
     </section>
   </div>
@@ -58,6 +80,26 @@ function getNonce(): string {
     text += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return text;
+}
+
+// @preserve @illusion: edit_annotation -> finds @illusion comment above block -> replaces label text
+async function editAnnotation(uri: vscode.Uri, startLine: number, endLine: number, newLabel: string): Promise<void> {
+  const doc = await vscode.workspace.openTextDocument(uri);
+  const maxLookback = 10;
+  const start = Math.max(0, startLine - 2);
+  // @preserve @illusion: search_backwards -> iterate lines upwards from block -> find @illusion
+  for (let line = start; line >= 0 && line > start - maxLookback; line--) {
+    const text = doc.lineAt(line).text;
+    const match = text.match(/@illusion\s*:\s*.+?(?=\s*\*\/|\s*$)/);
+    if (match) {
+      const range = new vscode.Range(line, match.index!, line, match.index! + match[0].length);
+      const edit = new vscode.WorkspaceEdit();
+      edit.replace(doc.uri, range, `@illusion: ${newLabel}`);
+      await vscode.workspace.applyEdit(edit);
+      return;
+    }
+  }
+  vscode.window.showErrorMessage('Code Illusion: Could not find @illusion annotation above the block.');
 }
 
 // @preserve @illusion: reveal_in_editor -> opens document -> scrolls to range -> sets selection
@@ -109,7 +151,11 @@ export function showDeclutteredView(
             };
             panel?.webview.postMessage(update);
           } catch {
-            // silently ignore — panel will get data on next change
+            panel?.webview.postMessage({
+              type: 'status',
+              severity: 'error',
+              message: 'Analysis failed. Check the active editor.'
+            });
           }
         }
       } else if (msg.type === 'reveal' && currentUri) {
@@ -119,6 +165,16 @@ export function showDeclutteredView(
           'codeIllusion.scaffold',
           { uri: currentUri, line: msg.startLine }
         );
+      } else if (msg.type === 'editAnnotation' && currentUri) {
+        try {
+          await editAnnotation(currentUri, msg.startLine, msg.endLine, msg.newLabel);
+        } catch {
+          panel?.webview.postMessage({
+            type: 'status',
+            severity: 'error',
+            message: 'Failed to edit annotation.'
+          });
+        }
       }
     });
     panel.webview.html = webviewContent(panel, ext.extensionUri);

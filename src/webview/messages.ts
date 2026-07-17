@@ -24,5 +24,19 @@ export interface ScaffoldMessage {
   startLine: number;
 }
 
-export type WebviewToExtension = ReadyMessage | RevealMessage | ScaffoldMessage;
-export type ExtensionToWebview = UpdateMessage;
+export interface EditAnnotationMessage {
+  type: 'editAnnotation';
+  startLine: number;
+  endLine: number;
+  newLabel: string;
+}
+
+export type WebviewToExtension = ReadyMessage | RevealMessage | ScaffoldMessage | EditAnnotationMessage;
+
+export interface ShowStatusMessage {
+  type: 'status';
+  severity: 'loading' | 'error' | 'info';
+  message: string;
+}
+
+export type ExtensionToWebview = UpdateMessage | ShowStatusMessage;
