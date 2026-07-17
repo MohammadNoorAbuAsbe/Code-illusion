@@ -1,0 +1,83 @@
+{
+  "name": "code-illusion-detangler",
+  "displayName": "Code Illusion De-tangler",
+  "description": "Renders AI/agent-written code as a side-by-side 'De-cluttered View' of semantic micro-cards. Agents annotate blocks with inline @illusion comments; the extension collapses boilerplate into human-readable cards.",
+  "version": "0.1.0",
+  "publisher": "codeillusion",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization",
+    "Programming Languages"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codeillusion/vscode-code-illusion-detangler"
+  },
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "qna": "markdown",
+  "license": "MIT",
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "codeIllusion.openView",
+        "title": "Code Illusion: Open De-cluttered View"
+      },
+      {
+        "command": "codeIllusion.checkCoverage",
+        "title": "Code Illusion: Check Coverage"
+      },
+      {
+        "command": "codeIllusion.scaffold",
+        "title": "Code Illusion: Scaffold Annotations"
+      },
+      {
+        "command": "codeIllusion.initRules",
+        "title": "Code Illusion: Init Agent Rules"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "codeIllusion.openView",
+        "key": "ctrl+alt+d",
+        "mac": "cmd+alt+d"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/ --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\" \"*.json\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"*.json\"",
+    "pretest:core": "node esbuild.js",
+    "test:core": "node dist/test-core.js",
+    "test": "npm run test:core"
+  },
+  "dependencies": {
+    "web-tree-sitter": "^0.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vscode/tree-sitter-wasm": "^0.3.1",
+    "esbuild": "^0.21.0",
+    "eslint": "^8.57.0",
+    "highlight.js": "^11.9.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.4.0"
+  }
+}

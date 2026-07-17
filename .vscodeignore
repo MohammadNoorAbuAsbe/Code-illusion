@@ -1,0 +1,16 @@
+.vscode/**
+out/**
+node_modules/.bin/**
+node_modules/@vscode/tree-sitter-wasm/**
+node_modules/highlight.js/**
+src/**
+scripts/**
+esbuild.js
+tsconfig.json
+**/*.ts
+**/*.map
+.gitignore
+.eslintrc.json
+.prettierrc
+**/.eslintrc*
+dist/test-core*
