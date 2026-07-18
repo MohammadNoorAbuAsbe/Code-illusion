@@ -11,7 +11,6 @@ declare function acquireVsCodeApi(): {
 const vscode = acquireVsCodeApi();
 
 const $ = (id: string): HTMLElement => document.getElementById(id)!;
-const codeLinesEl = $('code-lines') as HTMLDivElement;
 const cardsEl = $('cards') as HTMLDivElement;
 const coverageEl = $('coverage-badge') as HTMLSpanElement;
 const storyEl = $('story-banner') as HTMLDivElement;
@@ -34,7 +33,6 @@ interface UIState {
   collapsedGroups: Set<string>;
   editingCardId: string | null;
   lang: string;
-  source: string;
   executionFlow: string;
 }
 
@@ -50,7 +48,6 @@ const state: UIState = {
   collapsedGroups: new Set(),
   editingCardId: null,
   lang: '',
-  source: '',
   executionFlow: '',
 };
 
@@ -61,17 +58,6 @@ function escapeHtml(s: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
-
-function highlight(line: string, lang: string): string {
-  try {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(line, { language: lang, ignoreIllegals: true }).value;
-    }
-    return hljs.highlightAuto(line).value;
-  } catch {
-    return escapeHtml(line);
-  }
 }
 
 function highlightBlock(code: string, lang: string): string {
@@ -205,26 +191,6 @@ function render(): void {
   // ── Coverage badge ──
   coverageEl.textContent = `${annotated}/${total} annotated`;
   coverageEl.className = total - annotated > 0 ? 'badge-warn' : 'badge-ok';
-
-  // ── Code lines ──
-  const lines = state.source.split('\n');
-  const lineClass = new Map<number, 'ann' | 'miss'>();
-  for (const card of state.allCards) {
-    for (let n = card.startLine; n <= card.endLine; n++) {
-      if (card.label == null) {
-        lineClass.set(n, 'miss');
-      } else if (!lineClass.has(n)) {
-        lineClass.set(n, 'ann');
-      }
-    }
-  }
-  codeLinesEl.innerHTML = lines
-    .map((line: string, i: number) => {
-      const n = i + 1;
-      const cls = lineClass.get(n) ?? '';
-      return `<div class="code-line ${cls}" data-line="${n}"><span class="ln">${n}</span><span class="lc">${highlight(line, state.lang)}</span></div>`;
-    })
-    .join('');
 
   // ── Main cards area ──
   cardsOverlayEl.classList.add('is-hidden');
@@ -531,7 +497,6 @@ function expandAllCards(): void {
         state.editingCardId = null;
         state.allCards = msg.cards;
         state.lang = msg.highlight;
-        state.source = msg.source;
         state.executionFlow = msg.executionFlow;
         state.status = msg.cards.length === 0 ? 'empty' : 'ready';
         state.filterKind = kindSelect.value || null;

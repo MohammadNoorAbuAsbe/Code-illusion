@@ -6,9 +6,7 @@
   --fg: #d4d4d4;
   --muted: #8a8a8a;
   --ann: #2e4d2e;
-  --ann-line: rgba(80, 200, 120, 0.12);
   --miss: #5a3a1a;
-  --miss-line: rgba(220, 150, 60, 0.14);
   --accent: #4ec9b0;
   --warn: #e2b341;
   --radius: 8px;
@@ -32,17 +30,15 @@ body {
 
 #app {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   height: 100vh;
   overflow: hidden;
 }
 
-#code-pane,
 #cards-pane {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-right: 1px solid var(--border);
 }
 
 .pane-header {
@@ -57,45 +53,6 @@ body {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-}
-
-#code-lines {
-  overflow: auto;
-  flex: 1;
-  padding: 6px 0;
-  font-family: 'Cascadia Code', 'Consolas', monospace;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.code-line {
-  display: flex;
-  padding: 0 8px;
-  white-space: pre;
-}
-
-.code-line .lc {
-  overflow-x: auto;
-  white-space: pre;
-}
-
-.code-line .ln {
-  width: 42px;
-  flex: 0 0 42px;
-  text-align: right;
-  padding-right: 12px;
-  color: var(--muted);
-  user-select: none;
-}
-
-.code-line.ann {
-  background: var(--ann-line);
-  border-left: 2px solid var(--ann);
-}
-
-.code-line.miss {
-  background: var(--miss-line);
-  border-left: 2px solid var(--miss);
 }
 
 #cards {
@@ -387,14 +344,6 @@ body {
 
 .story-copy:hover {
   background: rgba(255, 255, 255, 0.1);
-}
-
-#code-lines:focus-visible {
-  outline: none;
-}
-
-.code-line:focus-visible {
-  background: rgba(78, 201, 176, 0.08);
 }
 
 /* ── Filter Bar ── */

@@ -3,10 +3,27 @@ import { AnalysisResult } from '../core/types';
 import { highlightId } from '../core/languages';
 import { analyzeDocument } from '../core/annotations';
 import { UpdateMessage, WebviewToExtension } from './messages';
+import { applyDecorations, clearDecorations } from './decorations';
 
 let panel: vscode.WebviewPanel | null = null;
 let currentUri: vscode.Uri | null = null;
 let extensionContext: vscode.ExtensionContext | null = null;
+let docChangeListener: vscode.Disposable | null = null;
+
+// @preserve @illusion: editor_for_uri -> finds open editor matching the tracked uri
+function editorForUri(uri: vscode.Uri): vscode.TextEditor | undefined {
+  return vscode.window.visibleTextEditors.find(
+    e => e.document.uri.toString() === uri.toString()
+  );
+}
+
+// @preserve @illusion: reanalyze_and_decorate -> re-runs analysis -> repaints editor markers
+async function reanalyzeAndDecorate(uri: vscode.Uri): Promise<void> {
+  const editor = editorForUri(uri);
+  if (!editor) return;
+  const result = await analyzeDocument(editor.document.getText(), editor.document.languageId);
+  applyDecorations(editor, result.cards);
+}
 
 // @preserve @illusion: webview_content -> builds HTML template with CSP nonce and asset URIs
 function webviewContent(panel: vscode.WebviewPanel, extensionUri: vscode.Uri): string {
@@ -27,10 +44,6 @@ function webviewContent(panel: vscode.WebviewPanel, extensionUri: vscode.Uri): s
 </head>
 <body>
   <div id="app">
-    <section id="code-pane" role="region" aria-label="Original code">
-      <div class="pane-header">Original Code</div>
-      <div id="code-lines"></div>
-    </section>
     <section id="cards-pane" role="region" aria-label="De-cluttered cards">
       <div class="pane-header">
         De-cluttered Cards
@@ -127,8 +140,14 @@ export function showDeclutteredView(
       vscode.ViewColumn.Beside,
       { enableScripts: true, retainContextWhenHidden: true }
     );
-    // @preserve @illusion: panel_on_dispose -> nullify panel state on webview close
+    // @preserve @illusion: panel_on_dispose -> clear markers + listeners -> nullify panel state
     panel.onDidDispose(() => {
+      if (currentUri) {
+        const ed = editorForUri(currentUri);
+        if (ed) clearDecorations(ed);
+      }
+      docChangeListener?.dispose();
+      docChangeListener = null;
       panel = null;
       currentUri = null;
       extensionContext = null;
@@ -139,13 +158,11 @@ export function showDeclutteredView(
         if (currentUri && extensionContext) {
           try {
             const doc = await vscode.workspace.openTextDocument(currentUri);
-            const source = doc.getText();
-            const result = await analyzeDocument(source, doc.languageId);
+            const result = await analyzeDocument(doc.getText(), doc.languageId);
             const update: UpdateMessage = {
               type: 'update',
               language: result.language,
               highlight: highlightId(result.language),
-              source: result.source,
               cards: result.cards,
               executionFlow: result.executionFlow ?? ''
             };
@@ -182,11 +199,23 @@ export function showDeclutteredView(
 
   extensionContext = ext;
   currentUri = editor.document.uri;
+
+  // @preserve @illusion: paint_markers -> decorate the active editor with ann/miss ranges
+  applyDecorations(editor, result.cards);
+
+  // @preserve @illusion: watch_edits -> re-decorate when the tracked document changes
+  if (!docChangeListener) {
+    docChangeListener = vscode.workspace.onDidChangeTextDocument(e => {
+      if (currentUri && e.document.uri.toString() === currentUri.toString()) {
+        reanalyzeAndDecorate(currentUri);
+      }
+    });
+  }
+
   const update: UpdateMessage = {
     type: 'update',
     language: result.language,
     highlight: highlightId(result.language),
-    source: result.source,
     cards: result.cards,
     executionFlow: result.executionFlow ?? ''
   };

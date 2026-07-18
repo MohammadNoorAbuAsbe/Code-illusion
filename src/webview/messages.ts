@@ -4,7 +4,6 @@ export interface UpdateMessage {
   type: 'update';
   language: string;
   highlight: string;
-  source: string;
   cards: Card[];
   executionFlow: string;
 }
