@@ -53,11 +53,18 @@ export interface CallGraphEdge {
   callerCardId: string;
   calleeCardId: string;
   calleeName: string;
+  external?: boolean;
+}
+
+export interface ExternalCard {
+  name: string;
+  label: string;
 }
 
 export interface BuildCallGraphResult {
   edges: CallGraphEdge[];
   entryPointIds: string[];
+  externalCards: Map<string, ExternalCard>;
 }
 
 export type BlockPredicate = (n: TSNode) => boolean;

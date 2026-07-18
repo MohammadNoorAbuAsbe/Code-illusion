@@ -1,4 +1,7 @@
 import { analyzeDocument } from './core/annotations';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 const sample = `// @preserve @illusion: main -> runs pipeline -> coordinates work
 function main() {
@@ -160,6 +163,68 @@ function outer() {
     (c) => c.kind === 'try_statement' && c.label == null
   );
   assert('nested try without own annotation stays missing (no inheritance from function)', !!unannotatedTry);
+
+  console.log('\n=== Closure / callback boundary (Bug A) ===');
+  const closureSample = `// @illusion: outer -> iterates -> wires callback
+function outer() {
+  items.forEach(x => inner(x));
+}
+// @illusion: inner -> does work
+function inner(v) { return v; }
+`;
+  const closureRes = await analyzeDocument(closureSample, 'javascript');
+  const outerCard = closureRes.cards.find((c) => c.name === 'outer');
+  assert('outer does not attribute callback callee as a direct call', !!outerCard && !outerCard.calls.includes('inner'),
+    `got: ${outerCard?.calls.join(',')}`);
+  if (outerCard && outerCard.narrative) {
+    assert('outer narrative does not list inner (it is inside a callback)', !outerCard.narrative.includes('inner'),
+      `got:\n${outerCard.narrative}`);
+  }
+
+  console.log('\n=== Cross-file external callees (Bug B) ===');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-xfile-'));
+  try {
+    const utilPath = path.join(tmpDir, 'util.js');
+    fs.writeFileSync(utilPath, `// @illusion: loadContacts -> reads storage -> returns array
+export function loadContacts() { return normalize(); }
+// @illusion: normalize -> lowercases entries
+function normalize() { return []; }
+`);
+    const mainPath = path.join(tmpDir, 'main.js');
+    const mainSrc = `import { loadContacts } from './util.js';
+// @illusion: render -> draws list -> calls loadContacts
+function render() {
+  const list = loadContacts();
+  return list;
+}`;
+    fs.writeFileSync(mainPath, mainSrc);
+
+    const xRes = await analyzeDocument(mainSrc, 'javascript', mainPath);
+    const renderCard = xRes.cards.find((c) => c.name === 'render');
+    assert('render card found', !!renderCard);
+    if (renderCard && renderCard.narrative) {
+      assert('render narrative includes external loadContacts label', renderCard.narrative.includes('reads storage'),
+        `got:\n${renderCard.narrative}`);
+      assert('external leaf is prefixed with reference glyph', renderCard.narrative.includes('↪'),
+        `got:\n${renderCard.narrative}`);
+      assert('narrative does NOT recurse into util.js internals (normalize)', !renderCard.narrative.includes('lowercases'),
+        `got:\n${renderCard.narrative}`);
+    } else {
+      assert('render narrative present', false, 'missing narrative');
+    }
+    assert('executionFlow includes external label', xRes.executionFlow.includes('reads storage'),
+      `got:\n${xRes.executionFlow}`);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+
+  console.log('\n=== Bare / package import stays graceful (Bug B) ===');
+  const pkgSample = `import { thing } from 'somepkg';
+// @illusion: useIt -> calls package fn
+function useIt() { return thing(); }`;
+  const pkgRes = await analyzeDocument(pkgSample, 'javascript', path.join(os.tmpdir(), 'ci-pkg-never.js'));
+  const useItCard = pkgRes.cards.find((c) => c.name === 'useIt');
+  assert('analysis does not crash on package imports', !!useItCard, 'useIt card missing');
 
   console.log(`\n======= RESULTS: ${passed} passed, ${failed} failed =======`);
   process.exit(failed > 0 ? 1 : 0);

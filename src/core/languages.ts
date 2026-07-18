@@ -1,4 +1,5 @@
 import { LanguageConfig } from './types';
+import * as path from 'path';
 
 // @preserve @illusion: mk_line_comment -> returns line comment config from token
 const LINE = (token: string): LanguageConfig['comment'] => ({ kind: 'line', token });
@@ -25,4 +26,23 @@ export function getLanguageConfig(languageId: string): LanguageConfig | null {
 // @preserve @illusion: highlight_id -> looks up highlight id -> falls back to plaintext
 export function highlightId(languageId: string): string {
   return LANGUAGES[languageId]?.highlight ?? 'plaintext';
+}
+
+const EXT_TO_LANGUAGE: Record<string, string> = {
+  '.js': 'javascript', '.mjs': 'javascript', '.cjs': 'javascript',
+  '.jsx': 'javascriptreact',
+  '.ts': 'typescript',
+  '.tsx': 'typescriptreact',
+  '.py': 'python',
+  '.java': 'java',
+  '.cs': 'csharp',
+  '.go': 'go',
+  '.rs': 'rust',
+  '.html': 'html', '.htm': 'html',
+};
+
+// @preserve @illusion: language_id_from_path -> maps file extension -> supported language id or null
+export function languageIdFromPath(filePath: string): string | null {
+  const ext = path.extname(filePath).toLowerCase();
+  return EXT_TO_LANGUAGE[ext] ?? null;
 }

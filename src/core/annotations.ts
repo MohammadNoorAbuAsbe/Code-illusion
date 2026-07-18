@@ -1,9 +1,11 @@
 import { AnalysisResult, Card, TSNode } from './types';
 import { getLanguageConfig } from './languages';
 import { parse } from './parser';
-import { extractBlocks, isBlock } from './blocks';
+import { extractBlocks, isBlock, isCallScopeBoundary } from './blocks';
 import { extractCallNames, buildCallGraph } from './calls';
 import { composeNarratives, buildExecutionFlow } from './narrative';
+import { extractImports, resolveExternalLabels } from './crossfile';
+import * as path from 'path';
 
 const PUNCTUATION = new Set(['{', '}', '(', ')', ';', ',']);
 const DECL_KEYWORDS = new Set(['export', 'async', 'default', 'static', 'declare', 'abstract']);
@@ -17,7 +19,7 @@ function samePos(a: TSNode, b: TSNode): boolean {
   );
 }
 
-function precedingComments(node: TSNode): string[] {
+export function precedingComments(node: TSNode): string[] {
   let current: TSNode | null = node;
   while (current && current.parent) {
     const parent: TSNode = current.parent;
@@ -69,7 +71,7 @@ function precedingComments(node: TSNode): string[] {
   return [];
 }
 
-function extractLabel(comments: string[]): string | null {
+export function extractLabel(comments: string[]): string | null {
   for (const c of comments) {
     const m = c.match(/@illusion\s*:\s*(.+)/);
     if (m) {
@@ -154,7 +156,7 @@ function analyzeFallback(source: string): Card[] {
   return cards;
 }
 
-export async function analyzeDocument(source: string, languageId: string): Promise<AnalysisResult> {
+export async function analyzeDocument(source: string, languageId: string, filePath?: string): Promise<AnalysisResult> {
   const config = getLanguageConfig(languageId);
   if (config && config.grammar) {
     try {
@@ -168,12 +170,23 @@ export async function analyzeDocument(source: string, languageId: string): Promi
         name: b.name,
         kind: b.kind,
       }));
-      const { edges, entryPointIds } = buildCallGraph(blockInfos, isBlock);
-      const narratives = composeNarratives(cards, edges, config?.narrativeDepth);
+
+      // Cross-file: resolve imported functions one level deep (relative named imports).
+      let externalResolver: ((name: string) => string | null) | undefined;
+      if (filePath) {
+        const importMap = extractImports(tree, path.dirname(filePath));
+        if (importMap.size > 0) {
+          const externalLabels = await resolveExternalLabels(importMap);
+          externalResolver = (name) => externalLabels.get(name) ?? null;
+        }
+      }
+
+      const { edges, entryPointIds, externalCards } = buildCallGraph(blockInfos, isCallScopeBoundary, externalResolver);
+      const narratives = composeNarratives(cards, edges, config?.narrativeDepth, externalCards);
       const executionFlow = buildExecutionFlow(cards, narratives, entryPointIds);
 
       for (let i = 0; i < cards.length; i++) {
-        cards[i].calls = extractCallNames(blocks[i].node, isBlock);
+        cards[i].calls = extractCallNames(blocks[i].node, isCallScopeBoundary);
         cards[i].narrative = narratives.get(cards[i].id) ?? null;
       }
 

@@ -45,6 +45,12 @@ export function isBlock(node: TSNode): boolean {
   return false;
 }
 
+// @illusion: is_call_scope_boundary -> true for nested functions/blocks that end a caller's direct-call scope
+export function isCallScopeBoundary(node: TSNode): boolean {
+  if (node.type === 'arrow_function') return true;
+  return isBlock(node);
+}
+
 export function getBlockName(node: TSNode): string | null {
   if (node.type === 'constructor') {
     return 'constructor';

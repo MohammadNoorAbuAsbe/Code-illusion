@@ -14,5 +14,5 @@ export function getActiveEditor(): vscode.TextEditor {
 // @preserve @illusion: analyze_editor -> reads document -> delegates to analyzeDocument
 export async function analyzeEditor(editor: vscode.TextEditor): Promise<AnalysisResult> {
   const doc = editor.document;
-  return analyzeDocument(doc.getText(), doc.languageId);
+  return analyzeDocument(doc.getText(), doc.languageId, doc.uri.fsPath);
 }

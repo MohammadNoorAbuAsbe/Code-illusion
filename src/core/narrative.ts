@@ -1,4 +1,4 @@
-import { Card, CallGraphEdge } from './types';
+import { Card, CallGraphEdge, ExternalCard } from './types';
 
 const DEFAULT_MAX_DEPTH = 2;
 
@@ -14,7 +14,8 @@ function buildTree(
   maxDepth: number,
   cardMap: Map<string, Card>,
   calleeMap: Map<string, CallGraphEdge[]>,
-  path: Set<string>
+  path: Set<string>,
+  externalCards?: Map<string, ExternalCard>
 ): TreeNode | null {
   if (depth > maxDepth) return null;
 
@@ -36,11 +37,19 @@ function buildTree(
     seen.add(edge.calleeName);
 
     const callee = cardMap.get(edge.calleeCardId);
-    if (!callee) continue;
+    if (!callee) {
+      const ext = externalCards?.get(edge.calleeCardId);
+      if (ext) {
+        children.push({ name: ext.name, label: ext.label, children: [] });
+      } else {
+        children.push({ name: edge.calleeName, label: `${edge.calleeName} \u26A0 missing annotation`, children: [] });
+      }
+      continue;
+    }
 
     let child: TreeNode | null;
     if (callee.label) {
-      child = buildTree(edge.calleeCardId, depth + 1, maxDepth, cardMap, calleeMap, path);
+      child = buildTree(edge.calleeCardId, depth + 1, maxDepth, cardMap, calleeMap, path, externalCards);
     } else {
       child = { name: edge.calleeName, label: `${edge.calleeName} \u26A0 missing annotation`, children: [] };
     }
@@ -82,9 +91,10 @@ function renderTree(
   cardId: string,
   maxDepth: number,
   cardMap: Map<string, Card>,
-  calleeMap: Map<string, CallGraphEdge[]>
+  calleeMap: Map<string, CallGraphEdge[]>,
+  externalCards?: Map<string, ExternalCard>
 ): string | null {
-  const tree = buildTree(cardId, 0, maxDepth, cardMap, calleeMap, new Set());
+  const tree = buildTree(cardId, 0, maxDepth, cardMap, calleeMap, new Set(), externalCards);
   if (!tree) return null;
   return formatTreeNode(tree, '', true);
 }
@@ -92,7 +102,8 @@ function renderTree(
 export function composeNarratives(
   cards: Card[],
   edges: CallGraphEdge[],
-  maxDepth?: number
+  maxDepth?: number,
+  externalCards?: Map<string, ExternalCard>
 ): Map<string, string> {
   const cardMap = new Map(cards.map((c) => [c.id, c]));
   const calleeMap = new Map<string, CallGraphEdge[]>();
@@ -108,7 +119,7 @@ export function composeNarratives(
   const result = new Map<string, string>();
   for (const card of cards) {
     if (card.label) {
-      const n = renderTree(card.id, depth, cardMap, calleeMap);
+      const n = renderTree(card.id, depth, cardMap, calleeMap, externalCards);
       if (n) result.set(card.id, n);
     }
   }

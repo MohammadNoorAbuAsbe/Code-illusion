@@ -22,7 +22,7 @@ function editorForUri(uri: vscode.Uri): vscode.TextEditor | undefined {
 async function reanalyzeAndDecorate(uri: vscode.Uri): Promise<void> {
   const editor = editorForUri(uri);
   if (!editor) return;
-  const result = await analyzeDocument(editor.document.getText(), editor.document.languageId);
+  const result = await analyzeDocument(editor.document.getText(), editor.document.languageId, uri.fsPath);
   applyDecorations(editor, result.cards);
 }
 
@@ -167,7 +167,7 @@ export function showDeclutteredView(
         if (currentUri && extensionContext) {
           try {
             const doc = await vscode.workspace.openTextDocument(currentUri);
-            const result = await analyzeDocument(doc.getText(), doc.languageId);
+            const result = await analyzeDocument(doc.getText(), doc.languageId, doc.uri.fsPath);
             const update: UpdateMessage = {
               type: 'update',
               language: result.language,

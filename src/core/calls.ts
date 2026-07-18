@@ -46,7 +46,8 @@ export function extractCallNames(node: TSNode, blockPred: BlockPredicate): strin
 
 export function buildCallGraph(
   blocks: BlockInfo[],
-  blockPred: BlockPredicate
+  blockPred: BlockPredicate,
+  externalResolver?: (name: string) => string | null
 ): BuildCallGraphResult {
   const nameToCard = new Map<string, { cardId: string; name: string }>();
   const duplicateNames = new Map<string, string[]>();
@@ -71,6 +72,7 @@ export function buildCallGraph(
 
   const edges: CallGraphEdge[] = [];
   const calledIds = new Set<string>();
+  const externalCards = new Map<string, { name: string; label: string }>();
 
   for (const b of blocks) {
     const callerId = b.cardId;
@@ -81,6 +83,14 @@ export function buildCallGraph(
       if (target && target.cardId !== callerId) {
         edges.push({ callerCardId: callerId, calleeCardId: target.cardId, calleeName: target.name });
         calledIds.add(target.cardId);
+      } else if (!target && externalResolver) {
+        const label = externalResolver(name);
+        if (label) {
+          const extId = `external:${name}`;
+          edges.push({ callerCardId: callerId, calleeCardId: extId, calleeName: name, external: true });
+          externalCards.set(extId, { name, label: `↪ ${label}` });
+          calledIds.add(extId);
+        }
       }
     }
   }
@@ -88,5 +98,5 @@ export function buildCallGraph(
   const callableIds = new Set(blocks.filter((b) => isCallableKind(b.kind)).map((b) => b.cardId));
   const entryPointIds = [...callableIds].filter((id) => !calledIds.has(id));
 
-  return { edges, entryPointIds };
+  return { edges, entryPointIds, externalCards };
 }
