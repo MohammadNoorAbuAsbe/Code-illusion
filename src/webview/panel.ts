@@ -9,6 +9,7 @@ let panel: vscode.WebviewPanel | null = null;
 let currentUri: vscode.Uri | null = null;
 let extensionContext: vscode.ExtensionContext | null = null;
 let docChangeListener: vscode.Disposable | null = null;
+let themeListener: vscode.Disposable | null = null;
 
 // @preserve @illusion: editor_for_uri -> finds open editor matching the tracked uri
 function editorForUri(uri: vscode.Uri): vscode.TextEditor | undefined {
@@ -49,8 +50,8 @@ function webviewContent(panel: vscode.WebviewPanel, extensionUri: vscode.Uri): s
         De-cluttered Cards
         <span id="coverage-badge" aria-live="polite"></span>
         <span class="pane-actions">
-          <button id="collapse-all" title="Collapse all code" aria-label="Collapse all code">⊟</button>
-          <button id="expand-all" title="Expand all code" aria-label="Expand all code">⊞</button>
+          <button id="collapse-all" title="Collapse all code" aria-label="Collapse all code"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="16" height="16" rx="2"></rect><line x1="8" y1="12" x2="16" y2="12"></line></svg></button>
+          <button id="expand-all" title="Expand all code" aria-label="Expand all code"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="16" height="16" rx="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></button>
         </span>
       </div>
       <div id="status-bar" class="status-bar is-hidden" role="status" aria-live="polite"></div>
@@ -148,9 +149,17 @@ export function showDeclutteredView(
       }
       docChangeListener?.dispose();
       docChangeListener = null;
+      themeListener?.dispose();
+      themeListener = null;
       panel = null;
       currentUri = null;
       extensionContext = null;
+    });
+
+    // @preserve @illusion: watch_theme -> post light/dark kind to webview on theme change
+    themeListener = vscode.window.onDidChangeActiveColorTheme((e) => {
+      const kind = e.kind === vscode.ColorThemeKind.Light ? 'light' : 'dark';
+      panel?.webview.postMessage({ type: 'theme', kind });
     });
     // @preserve @illusion: handle_webview_messages -> handle ready/reveal/scaffold messages from webview
     panel.webview.onDidReceiveMessage(async (msg: WebviewToExtension) => {
@@ -220,6 +229,8 @@ export function showDeclutteredView(
     executionFlow: result.executionFlow ?? ''
   };
   panel.webview.postMessage(update);
+  const initialKind = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ? 'light' : 'dark';
+  panel.webview.postMessage({ type: 'theme', kind: initialKind });
   panel.reveal(vscode.ViewColumn.Beside, true);
 }
 

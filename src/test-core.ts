@@ -133,6 +133,34 @@ function helper() { return 2; }
   const processCards = dupRes.cards.filter(c => c.name === 'processData');
   assert('duplicate names handled without crash', processCards.length > 0);
 
+  console.log('\n=== Nested block annotation association ===');
+  const nestedSample = `// @preserve @illusion: ringOnce -> plays one chord -> schedules next
+function ringOnce() {
+  if (ringtoneCtx) {
+    // @illusion: <TODO: describe (try_statement)>
+    try { ringtoneCtx.close(); } catch (_) {}
+    ringtoneCtx = null;
+  }
+}
+
+// @preserve @illusion: outer -> owns a nested try with no annotation
+function outer() {
+  if (true) {
+    try { risky(); } catch (_) {}
+  }
+}
+`;
+  const nestedRes = await analyzeDocument(nestedSample, 'javascript');
+  const annotatedTry = nestedRes.cards.find(
+    (c) => c.kind === 'try_statement' && c.label && c.label.includes('TODO')
+  );
+  assert('nested try finds annotation placed above enclosing if', !!annotatedTry,
+    `try cards: ${nestedRes.cards.filter(c => c.kind === 'try_statement').map(c => c.label).join(' | ')}`);
+  const unannotatedTry = nestedRes.cards.find(
+    (c) => c.kind === 'try_statement' && c.label == null
+  );
+  assert('nested try without own annotation stays missing (no inheritance from function)', !!unannotatedTry);
+
   console.log(`\n======= RESULTS: ${passed} passed, ${failed} failed =======`);
   process.exit(failed > 0 ? 1 : 0);
 })().catch((e) => {

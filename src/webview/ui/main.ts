@@ -71,6 +71,23 @@ function highlightBlock(code: string, lang: string): string {
   }
 }
 
+// @preserve @illusion: icon -> returns inline stroke-SVG markup for a named line icon
+const ICONS: Record<string, string> = {
+  chevron: '<polyline points="6 9 12 15 18 9"></polyline>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path>',
+  search: '<circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>',
+  plus: '<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>',
+  reveal: '<line x1="7" y1="17" x2="17" y2="7"></line><polyline points="9 7 17 7 17 15"></polyline>',
+  warning: '<path d="M12 3 2 20h20L12 3z"></path><line x1="12" y1="9" x2="12" y2="14"></line><line x1="12" y1="17" x2="12" y2="17"></line>',
+  doc: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="14 3 14 9 20 9"></polyline>',
+  link: '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"></path><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path>',
+};
+
+function icon(name: string): string {
+  return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[name] ?? ''}</svg>`;
+}
+
+// @preserve @illusion: get_visible_cards -> applies status/kind/text filters + sort -> returns cards
 function getVisibleCards(): Card[] {
   let cards = state.allCards;
 
@@ -125,6 +142,7 @@ function getGroupedCards(cards: Card[]): Map<string, Card[]> {
   return groups;
 }
 
+// @preserve @illusion: render -> rebuilds filter UI + grouped/animated card list from state
 function render(): void {
   const total = state.allCards.length;
   const annotated = state.allCards.filter(c => c.label != null).length;
@@ -159,10 +177,10 @@ function render(): void {
     const prevHTML = storyEl.innerHTML;
     const newHTML = `
       <div class="story-header">
-        <span class="story-icon">⛓</span>
+        <span class="story-icon">${icon('link')}</span>
         <span class="story-title">Execution Flow</span>
-        <button class="story-copy" title="Copy narrative" aria-label="Copy narrative">📋</button>
-        <button class="story-toggle" title="Toggle story" aria-label="Toggle story">▼</button>
+        <button class="story-copy" title="Copy narrative" aria-label="Copy narrative">${icon('copy')}</button>
+        <button class="story-toggle" title="Toggle story" aria-label="Toggle story">${icon('chevron')}</button>
       </div>
       <div class="story-body">
         <span class="story-text tree-text">${escapeHtml(state.executionFlow)}</span>
@@ -174,7 +192,7 @@ function render(): void {
       const copyBtn = storyEl.querySelector('.story-copy') as HTMLButtonElement;
       const toggleStory = () => {
         const collapsed = storyEl.classList.toggle('collapsed');
-        toggle.textContent = collapsed ? '▶' : '▼';
+        toggle.classList.toggle('collapsed', collapsed);
       };
       toggle.addEventListener('click', (e) => { e.stopPropagation(); toggleStory(); });
       header.addEventListener('click', toggleStory);
@@ -202,15 +220,15 @@ function render(): void {
   } else if (state.status === 'error') {
     cardsOverlayEl.classList.remove('is-hidden');
     cardsOverlayEl.className = 'state-overlay error-state';
-    cardsOverlayEl.innerHTML = '<div class="state-icon">⚠</div><div class="state-message">Analysis failed. Check the editor and try again.</div>';
+    cardsOverlayEl.innerHTML = `<div class="state-icon">${icon('warning')}</div><div class="state-message">Analysis failed. Check the editor and try again.</div>`;
     cardsEl.innerHTML = '';
   } else if (total === 0) {
     cardsOverlayEl.classList.remove('is-hidden');
     cardsOverlayEl.className = 'state-overlay';
-    cardsOverlayEl.innerHTML = '<div class="state-icon">📄</div><div class="state-message">No code blocks detected in this file.</div>';
+    cardsOverlayEl.innerHTML = `<div class="state-icon">${icon('doc')}</div><div class="state-message">No code blocks detected in this file.</div>`;
     cardsEl.innerHTML = '';
   } else if (visible.length === 0) {
-    cardsEl.innerHTML = `<div class="state-overlay" style="display:flex"><div class="state-icon">🔍</div><div class="state-message">No cards match <strong>${escapeHtml(state.filterText)}</strong>. Try a different filter.</div></div>`;
+    cardsEl.innerHTML = `<div class="state-overlay" style="display:flex"><div class="state-icon">${icon('search')}</div><div class="state-message">No cards match <strong>${escapeHtml(state.filterText)}</strong>. Try a different filter.</div></div>`;
   } else if (state.groupByKind) {
     const groups = getGroupedCards(visible);
     let html = '';
@@ -219,7 +237,7 @@ function render(): void {
       const count = gCards.length;
       html += `<div class="group" role="region" aria-label="${escapeHtml(kind)}">
         <div class="group-header ${isCollapsed ? 'collapsed' : ''}" role="button" tabindex="0" aria-expanded="${!isCollapsed}" data-kind="${escapeHtml(kind)}">
-          <span class="group-icon" aria-hidden="true">▼</span>
+           <span class="group-icon" aria-hidden="true">${icon('chevron')}</span>
           <span class="group-title">${escapeHtml(kind)}</span>
           <span class="group-count">${count}</span>
         </div>
@@ -311,6 +329,7 @@ function render(): void {
   }
 }
 
+// @preserve @illusion: build_card_html -> emits one card's markup (head, label/badge, actions, code)
 function buildCardHTML(card: Card, lang: string): string {
   const missing = card.label == null;
   const isEditing = state.editingCardId === card.id;
@@ -320,12 +339,12 @@ function buildCardHTML(card: Card, lang: string): string {
   const labelHtml = isEditing
     ? `<div class="card-label editing"><input type="text" value="${escapeHtml(card.label ?? '')}" data-card-id="${escapeHtml(card.id)}"><span class="editing-hint">Enter to save, Esc to cancel</span></div>`
     : missing
-      ? `<div class="card-label"><span class="badge">⚠ missing @illusion</span></div>`
+      ? `<div class="card-label"><span class="badge">${icon('warning')} missing @illusion</span></div>`
       : `<div class="card-label ${card.narrative && card.narrative.includes('\n') ? 'tree-text' : ''}" data-editable="${escapeHtml(card.id)}">${escapeHtml(card.narrative ?? card.label ?? '')}</div>`;
 
   const revealData = `data-start-line="${card.startLine}" data-end-line="${card.endLine}"`;
   const scaffoldBtn = missing
-    ? `<button class="scaffold-btn" data-start-line="${card.startLine}" aria-label="Scaffold annotation">＋ scaffold</button>`
+    ? `<button class="scaffold-btn" data-start-line="${card.startLine}" aria-label="Scaffold annotation">${icon('plus')} scaffold</button>`
     : '';
 
   const codeHtml = `<pre class="card-code" ${expanded ? '' : 'hidden'}><code>${highlightBlock(card.code, lang)}</code></pre>`;
@@ -340,18 +359,20 @@ function buildCardHTML(card: Card, lang: string): string {
     </div>
     ${labelHtml}
     <div class="card-actions">
-      <button class="reveal-btn" ${revealData} aria-label="Reveal in editor">↗ reveal</button>
+      <button class="reveal-btn" ${revealData} aria-label="Reveal in editor">${icon('reveal')} reveal</button>
       ${scaffoldBtn}
     </div>
     ${codeHtml}
   </div>`;
 }
 
+// @preserve @illusion: start_editing -> marks a card as editing -> re-renders with input focused
 function startEditing(cardId: string): void {
   state.editingCardId = cardId;
   render();
 }
 
+// @preserve @illusion: finish_editing -> commits label -> posts editAnnotation to extension
 function finishEditing(cardId: string, newLabel: string): void {
   const card = state.allCards.find(c => c.id === cardId);
   if (!card) { state.editingCardId = null; render(); return; }
@@ -501,6 +522,8 @@ function expandAllCards(): void {
         state.status = msg.cards.length === 0 ? 'empty' : 'ready';
         state.filterKind = kindSelect.value || null;
         render();
+      } else if (msg && msg.type === 'theme') {
+        document.body.dataset.themeKind = msg.kind;
       } else if (msg && msg.type === 'status') {
         if (msg.severity === 'error') {
           statusBarEl.className = 'status-bar error';

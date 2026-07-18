@@ -7,7 +7,6 @@ import { composeNarratives, buildExecutionFlow } from './narrative';
 
 const PUNCTUATION = new Set(['{', '}', '(', ')', ';', ',']);
 const DECL_KEYWORDS = new Set(['export', 'async', 'default', 'static', 'declare', 'abstract']);
-const WRAPPER_TYPES = new Set(['export_statement', 'decorated_definition']);
 
 function samePos(a: TSNode, b: TSNode): boolean {
   return (
@@ -28,14 +27,16 @@ function precedingComments(node: TSNode): string[] {
 
     for (const s of parent.children) {
       if (samePos(s, current)) {
-        if (pending.length > 0 || !WRAPPER_TYPES.has(parent.type)) {
-          if (inBlockComment) {
-            pending.push(blockCommentText);
-            blockCommentText = '';
-            inBlockComment = false;
-          }
-          return pending;
+        if (inBlockComment) {
+          pending.push(blockCommentText);
+          blockCommentText = '';
+          inBlockComment = false;
         }
+        // Comments sit directly above the node within this parent: use them.
+        if (pending.length > 0) return pending;
+        // No comment here. Climb to ancestors, but stop at the first enclosing
+        // extractable block (function/class/try/loop) — its own annotation lives
+        // above it, not above `node`, so we must not inherit it.
         break;
       }
       const t = (s.type ?? '').toLowerCase();
@@ -60,6 +61,9 @@ function precedingComments(node: TSNode): string[] {
         pending.length = 0;
       }
     }
+    // Stop climbing once we reach an enclosing extractable block; comments above
+    // it belong to that block, not to the nested node we started from.
+    if (isBlock(parent)) return [];
     current = parent;
   }
   return [];

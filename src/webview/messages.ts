@@ -38,4 +38,9 @@ export interface ShowStatusMessage {
   message: string;
 }
 
-export type ExtensionToWebview = UpdateMessage | ShowStatusMessage;
+export interface ThemeMessage {
+  type: 'theme';
+  kind: 'light' | 'dark';
+}
+
+export type ExtensionToWebview = UpdateMessage | ShowStatusMessage | ThemeMessage;
