@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { analyzeEditor, getActiveEditor } from './util';
 
 let collection: vscode.DiagnosticCollection | null = null;
-// @preserve @illusion: check_coverage_command -> analyzes editor -> creates diagnostics for missing annotations
+// @illusion: check_coverage_command -> analyzes editor -> creates diagnostics for missing annotations
 export async function checkCoverageCommand(): Promise<void> {
   const editor = getActiveEditor();
   const doc = editor.document;
@@ -14,7 +14,7 @@ export async function checkCoverageCommand(): Promise<void> {
 
   const diags: vscode.Diagnostic[] = [];
   let missing = 0;
-  // @preserve @illusion: build_diagnostics -> iterate cards -> create hint for each missing annotation
+  // @illusion: build_diagnostics -> iterate cards -> create hint for each missing annotation
   for (const c of result.cards) {
     if (c.label == null) {
       missing++;

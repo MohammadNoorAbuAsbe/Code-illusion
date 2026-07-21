@@ -11,29 +11,26 @@ let extensionContext: vscode.ExtensionContext | null = null;
 let docChangeListener: vscode.Disposable | null = null;
 let themeListener: vscode.Disposable | null = null;
 
-// @preserve @illusion: editor_for_uri -> finds open editor matching the tracked uri
+// @illusion: editor_for_uri -> finds open editor matching the tracked uri
 function editorForUri(uri: vscode.Uri): vscode.TextEditor | undefined {
-  return vscode.window.visibleTextEditors.find(
-    e => e.document.uri.toString() === uri.toString()
-  );
+  return vscode.window.visibleTextEditors.find((e) => e.document.uri.toString() === uri.toString());
 }
 
-// @preserve @illusion: reanalyze_and_decorate -> re-runs analysis -> repaints editor markers
+// @illusion: reanalyze_and_decorate -> re-runs analysis -> repaints editor markers
 async function reanalyzeAndDecorate(uri: vscode.Uri): Promise<void> {
   const editor = editorForUri(uri);
   if (!editor) return;
-  const result = await analyzeDocument(editor.document.getText(), editor.document.languageId, uri.fsPath);
+  const depth = vscode.workspace.getConfiguration('codeIllusion').get<number>('narrativeDepth');
+  const result = await analyzeDocument(editor.document.getText(), editor.document.languageId, uri.fsPath, {
+    narrativeDepth: depth,
+  });
   applyDecorations(editor, result.cards);
 }
 
-// @preserve @illusion: webview_content -> builds HTML template with CSP nonce and asset URIs
+// @illusion: webview_content -> builds HTML template with CSP nonce and asset URIs
 function webviewContent(panel: vscode.WebviewPanel, extensionUri: vscode.Uri): string {
-  const scriptUri = panel.webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, 'dist', 'webview', 'main.js')
-  );
-  const styleUri = panel.webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, 'dist', 'webview', 'styles.css')
-  );
+  const scriptUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'dist', 'webview', 'main.js'));
+  const styleUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'dist', 'webview', 'styles.css'));
   const nonce = getNonce();
   return `<!DOCTYPE html>
 <html lang="en">
@@ -85,24 +82,25 @@ function webviewContent(panel: vscode.WebviewPanel, extensionUri: vscode.Uri): s
 </html>`;
 }
 
-// @preserve @illusion: get_nonce -> generates 32-char random nonce for CSP
+// @illusion: get_nonce -> generates 32-char random nonce for CSP
 function getNonce(): string {
   let text = '';
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  // @preserve @illusion: build_nonce -> iterate 32 times -> pick random char
+  // @illusion: build_nonce -> iterate 32 times -> pick random char
   for (let i = 0; i < 32; i++) {
     text += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return text;
 }
 
-// @preserve @illusion: edit_annotation -> finds @illusion comment above block -> replaces label text
+// @illusion: edit_annotation -> finds @illusion comment above block -> replaces label text
 async function editAnnotation(uri: vscode.Uri, startLine: number, endLine: number, newLabel: string): Promise<void> {
   const doc = await vscode.workspace.openTextDocument(uri);
-  const maxLookback = 10;
-  const start = Math.max(0, startLine - 2);
-  // @preserve @illusion: search_backwards -> iterate lines upwards from block -> find @illusion
-  for (let line = start; line >= 0 && line > start - maxLookback; line--) {
+  const maxLookback = 12;
+  // @illusion: search_backwards -> scans upward from line above block -> finds @illusion
+  const firstAbove = Math.max(0, startLine - 2);
+  // @illusion: scan_upwards -> walks lines above block -> locates @illusion comment
+  for (let line = firstAbove, scanned = 0; line >= 0 && scanned < maxLookback; line--, scanned++) {
     const text = doc.lineAt(line).text;
     const match = text.match(/@illusion\s*:\s*.+?(?=\s*\*\/|\s*$)/);
     if (match) {
@@ -116,32 +114,37 @@ async function editAnnotation(uri: vscode.Uri, startLine: number, endLine: numbe
   vscode.window.showErrorMessage('Code Illusion: Could not find @illusion annotation above the block.');
 }
 
-// @preserve @illusion: reveal_in_editor -> opens document -> scrolls to range -> sets selection
+// @illusion: post_note -> sends an info status to the webview when analysis notes something
+function postNote(result: AnalysisResult): void {
+  if (result.note) {
+    panel?.webview.postMessage({ type: 'status', severity: 'info', message: result.note });
+  }
+}
+
+// @illusion: reveal_in_editor -> opens document -> scrolls to range -> sets selection
 async function revealInEditor(uri: vscode.Uri, startLine: number, endLine: number): Promise<void> {
   const doc = await vscode.workspace.openTextDocument(uri);
   const editor = await vscode.window.showTextDocument(doc, {
     viewColumn: vscode.ViewColumn.One,
-    preserveFocus: false
+    preserveFocus: false,
   });
   const range = new vscode.Range(startLine - 1, 0, endLine, 0);
   editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
   editor.selection = new vscode.Selection(startLine - 1, 0, startLine - 1, 0);
 }
 
-// @preserve @illusion: show_decluttered_view -> creates panel -> wires message handlers -> posts update
+// @illusion: show_decluttered_view -> creates panel -> wires message handlers -> posts update
 export function showDeclutteredView(
   ext: vscode.ExtensionContext,
   editor: vscode.TextEditor,
   result: AnalysisResult
 ): void {
   if (!panel) {
-    panel = vscode.window.createWebviewPanel(
-      'codeIllusion',
-      'De-cluttered View',
-      vscode.ViewColumn.Beside,
-      { enableScripts: true, retainContextWhenHidden: true }
-    );
-    // @preserve @illusion: panel_on_dispose -> clear markers + listeners -> nullify panel state
+    panel = vscode.window.createWebviewPanel('codeIllusion', 'De-cluttered View', vscode.ViewColumn.Beside, {
+      enableScripts: true,
+      retainContextWhenHidden: true,
+    });
+    // @illusion: panel_on_dispose -> clear markers + listeners -> nullify panel state
     panel.onDidDispose(() => {
       if (currentUri) {
         const ed = editorForUri(currentUri);
@@ -156,41 +159,42 @@ export function showDeclutteredView(
       extensionContext = null;
     });
 
-    // @preserve @illusion: watch_theme -> post light/dark kind to webview on theme change
+    // @illusion: watch_theme -> post light/dark kind to webview on theme change
     themeListener = vscode.window.onDidChangeActiveColorTheme((e) => {
       const kind = e.kind === vscode.ColorThemeKind.Light ? 'light' : 'dark';
       panel?.webview.postMessage({ type: 'theme', kind });
     });
-    // @preserve @illusion: handle_webview_messages -> handle ready/reveal/scaffold messages from webview
+    // @illusion: handle_webview_messages -> handle ready/reveal/scaffold messages from webview
     panel.webview.onDidReceiveMessage(async (msg: WebviewToExtension) => {
       if (msg.type === 'ready') {
         if (currentUri && extensionContext) {
           try {
             const doc = await vscode.workspace.openTextDocument(currentUri);
-            const result = await analyzeDocument(doc.getText(), doc.languageId, doc.uri.fsPath);
+            const depth = vscode.workspace.getConfiguration('codeIllusion').get<number>('narrativeDepth');
+            const result = await analyzeDocument(doc.getText(), doc.languageId, doc.uri.fsPath, {
+              narrativeDepth: depth,
+            });
             const update: UpdateMessage = {
               type: 'update',
               language: result.language,
               highlight: highlightId(result.language),
               cards: result.cards,
-              executionFlow: result.executionFlow ?? ''
+              executionFlow: result.executionFlow ?? '',
             };
             panel?.webview.postMessage(update);
+            postNote(result);
           } catch {
             panel?.webview.postMessage({
               type: 'status',
               severity: 'error',
-              message: 'Analysis failed. Check the active editor.'
+              message: 'Analysis failed. Check the active editor.',
             });
           }
         }
       } else if (msg.type === 'reveal' && currentUri) {
         await revealInEditor(currentUri, msg.startLine, msg.endLine);
       } else if (msg.type === 'scaffold' && currentUri) {
-        await vscode.commands.executeCommand(
-          'codeIllusion.scaffold',
-          { uri: currentUri, line: msg.startLine }
-        );
+        await vscode.commands.executeCommand('codeIllusion.scaffold', { uri: currentUri, line: msg.startLine });
       } else if (msg.type === 'editAnnotation' && currentUri) {
         try {
           await editAnnotation(currentUri, msg.startLine, msg.endLine, msg.newLabel);
@@ -198,7 +202,7 @@ export function showDeclutteredView(
           panel?.webview.postMessage({
             type: 'status',
             severity: 'error',
-            message: 'Failed to edit annotation.'
+            message: 'Failed to edit annotation.',
           });
         }
       }
@@ -209,12 +213,12 @@ export function showDeclutteredView(
   extensionContext = ext;
   currentUri = editor.document.uri;
 
-  // @preserve @illusion: paint_markers -> decorate the active editor with ann/miss ranges
+  // @illusion: paint_markers -> decorate the active editor with ann/miss ranges
   applyDecorations(editor, result.cards);
 
-  // @preserve @illusion: watch_edits -> re-decorate when the tracked document changes
+  // @illusion: watch_edits -> re-decorate when the tracked document changes
   if (!docChangeListener) {
-    docChangeListener = vscode.workspace.onDidChangeTextDocument(e => {
+    docChangeListener = vscode.workspace.onDidChangeTextDocument((e) => {
       if (currentUri && e.document.uri.toString() === currentUri.toString()) {
         reanalyzeAndDecorate(currentUri);
       }
@@ -226,15 +230,16 @@ export function showDeclutteredView(
     language: result.language,
     highlight: highlightId(result.language),
     cards: result.cards,
-    executionFlow: result.executionFlow ?? ''
+    executionFlow: result.executionFlow ?? '',
   };
   panel.webview.postMessage(update);
+  postNote(result);
   const initialKind = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ? 'light' : 'dark';
   panel.webview.postMessage({ type: 'theme', kind: initialKind });
   panel.reveal(vscode.ViewColumn.Beside, true);
 }
 
-// @preserve @illusion: is_panel_open -> returns true if panel exists
+// @illusion: is_panel_open -> returns true if panel exists
 export function isPanelOpen(): boolean {
   return panel !== null;
 }

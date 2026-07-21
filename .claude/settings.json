@@ -1,0 +1,8 @@
+{
+  "preToolUse": [
+    {
+      "match": "**/*",
+      "command": "echo \"---\"; echo \"TIP: Run `code-illusion check .` or `code-illusion story .` for @illusion annotation insights.\""
+    }
+  ]
+}

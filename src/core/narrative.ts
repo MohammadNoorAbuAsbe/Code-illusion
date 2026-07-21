@@ -8,6 +8,7 @@ interface TreeNode {
   children: TreeNode[];
 }
 
+// @illusion: build_tree -> recurses callees -> composes a narrative TreeNode (cycle-aware)
 function buildTree(
   cardId: string,
   depth: number,
@@ -32,6 +33,7 @@ function buildTree(
   const seen = new Set<string>();
   const children: TreeNode[] = [];
 
+  // @illusion: walk_callees -> walks call edges -> builds child narrative nodes
   for (const edge of edges) {
     if (seen.has(edge.calleeName)) continue;
     seen.add(edge.calleeName);
@@ -61,32 +63,28 @@ function buildTree(
   return { name: card.name, label: card.label, children };
 }
 
-function formatTreeNode(node: TreeNode, prefix: string = '', isRoot: boolean = true): string {
-  const line = isRoot ? node.label : `${prefix}${node.label}`;
-  let result = line;
-
-  for (let i = 0; i < node.children.length; i++) {
+// @illusion: format_tree_node -> recurses children -> emits box-drawing lines at any depth
+function formatTreeNode(node: TreeNode, prefix: string): string {
+  let result = '';
+  node.children.forEach((child, i) => {
     const last = i === node.children.length - 1;
-    const child = node.children[i];
     const connector = last ? '\u2514\u2500 ' : '\u251C\u2500 ';
-    const indent = isRoot ? '  ' : prefix.slice(0, -2) + (last ? '   ' : '\u2502  ');
-
-    result += `\n${indent}${connector}${child.label}`;
-
+    result += `${prefix}${connector}${child.label}\n`;
+    const childPrefix = prefix + (last ? '   ' : '\u2502  ');
     if (child.children.length > 0) {
-      const childPrefix = indent + (last ? '   ' : '\u2502  ');
-      for (let j = 0; j < child.children.length; j++) {
-        const lastChild = j === child.children.length - 1;
-        const gc = child.children[j];
-        const gcConnector = lastChild ? '\u2514\u2500 ' : '\u251C\u2500 ';
-        result += `\n${childPrefix}${gcConnector}${gc.label}`;
-      }
+      result += formatTreeNode(child, childPrefix);
     }
-  }
-
-  return result;
+  });
+  return result.replace(/\n$/, '');
 }
 
+// @illusion: format_tree -> renders root label + recursive children into a tree string
+function formatTree(root: TreeNode): string {
+  const childrenLines = formatTreeNode(root, '  ');
+  return childrenLines ? `${root.label}\n${childrenLines}` : root.label;
+}
+
+// @illusion: render_tree -> builds + formats a single card's narrative tree
 function renderTree(
   cardId: string,
   maxDepth: number,
@@ -96,9 +94,10 @@ function renderTree(
 ): string | null {
   const tree = buildTree(cardId, 0, maxDepth, cardMap, calleeMap, new Set(), externalCards);
   if (!tree) return null;
-  return formatTreeNode(tree, '', true);
+  return formatTree(tree);
 }
 
+// @illusion: compose_narratives -> renders a narrative tree for every labelled card
 export function composeNarratives(
   cards: Card[],
   edges: CallGraphEdge[],
@@ -108,6 +107,7 @@ export function composeNarratives(
   const cardMap = new Map(cards.map((c) => [c.id, c]));
   const calleeMap = new Map<string, CallGraphEdge[]>();
 
+  // @illusion: group_edges -> walks edges -> buckets callees per caller card
   for (const edge of edges) {
     if (!calleeMap.has(edge.callerCardId)) {
       calleeMap.set(edge.callerCardId, []);
@@ -117,6 +117,7 @@ export function composeNarratives(
 
   const depth = maxDepth ?? DEFAULT_MAX_DEPTH;
   const result = new Map<string, string>();
+  // @illusion: render_each_card -> walks cards -> composes narrative tree per labelled card
   for (const card of cards) {
     if (card.label) {
       const n = renderTree(card.id, depth, cardMap, calleeMap, externalCards);
@@ -127,14 +128,12 @@ export function composeNarratives(
   return result;
 }
 
-export function buildExecutionFlow(
-  cards: Card[],
-  narratives: Map<string, string>,
-  entryPointIds: string[]
-): string {
+// @illusion: build_execution_flow -> joins entry-point narratives into a file-level story
+export function buildExecutionFlow(cards: Card[], narratives: Map<string, string>, entryPointIds: string[]): string {
   const cardMap = new Map(cards.map((c) => [c.id, c]));
   const parts: string[] = [];
 
+  // @illusion: join_entry_flow -> walks entry points -> assembles file-level execution story
   for (const id of entryPointIds) {
     const card = cardMap.get(id);
     const narrative = narratives.get(id);

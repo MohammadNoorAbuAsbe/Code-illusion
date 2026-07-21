@@ -4,3 +4,5 @@ dist/
 *.wasm
 .DS_Store
 Thumbs.db
+.code-illusion/cache
+code-illusion-out/cache

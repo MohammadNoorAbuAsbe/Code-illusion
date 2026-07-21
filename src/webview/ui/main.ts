@@ -10,6 +10,7 @@ declare function acquireVsCodeApi(): {
 
 const vscode = acquireVsCodeApi();
 
+// @illusion: query_el -> grabs element by id -> returns typed HTMLElement
 const $ = (id: string): HTMLElement => document.getElementById(id)!;
 const cardsEl = $('cards') as HTMLDivElement;
 const coverageEl = $('coverage-badge') as HTMLSpanElement;
@@ -51,6 +52,7 @@ const state: UIState = {
   executionFlow: '',
 };
 
+// @illusion: escape_html -> escapes text -> prevents html injection
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -60,7 +62,9 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
+// @illusion: highlight_block -> highlights code -> falls back to escaped text on error
 function highlightBlock(code: string, lang: string): string {
+  // @illusion: guard_highlight -> ignores highlight failure -> falls back to escaped text
   try {
     if (lang && hljs.getLanguage(lang)) {
       return hljs.highlight(code, { language: lang, ignoreIllegals: true }).value;
@@ -71,42 +75,45 @@ function highlightBlock(code: string, lang: string): string {
   }
 }
 
-// @preserve @illusion: icon -> returns inline stroke-SVG markup for a named line icon
+// @illusion: icon -> returns inline stroke-SVG markup for a named line icon
 const ICONS: Record<string, string> = {
   chevron: '<polyline points="6 9 12 15 18 9"></polyline>',
   copy: '<rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path>',
   search: '<circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>',
   reveal: '<line x1="7" y1="17" x2="17" y2="7"></line><polyline points="9 7 17 7 17 15"></polyline>',
-  warning: '<path d="M12 3 2 20h20L12 3z"></path><line x1="12" y1="9" x2="12" y2="14"></line><line x1="12" y1="17" x2="12" y2="17"></line>',
+  warning:
+    '<path d="M12 3 2 20h20L12 3z"></path><line x1="12" y1="9" x2="12" y2="14"></line><line x1="12" y1="17" x2="12" y2="17"></line>',
   doc: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="14 3 14 9 20 9"></polyline>',
   link: '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"></path><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path>',
 };
 
+// @illusion: icon -> looks up svg path -> wraps named icon in svg markup
 function icon(name: string): string {
   return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[name] ?? ''}</svg>`;
 }
 
-// @preserve @illusion: get_visible_cards -> applies status/kind/text filters + sort -> returns cards
+// @illusion: get_visible_cards -> applies status/kind/text filters + sort -> returns cards
 function getVisibleCards(): Card[] {
   let cards = state.allCards;
 
   if (state.filterStatus === 'annotated') {
-    cards = cards.filter(c => c.label != null);
+    cards = cards.filter((c) => c.label != null);
   } else if (state.filterStatus === 'missing') {
-    cards = cards.filter(c => c.label == null);
+    cards = cards.filter((c) => c.label == null);
   }
 
   if (state.filterKind) {
-    cards = cards.filter(c => c.kind === state.filterKind);
+    cards = cards.filter((c) => c.kind === state.filterKind);
   }
 
   if (state.filterText) {
     const q = state.filterText.toLowerCase();
-    cards = cards.filter(c =>
-      (c.name && c.name.toLowerCase().includes(q)) ||
-      c.kind.toLowerCase().includes(q) ||
-      (c.label && c.label.toLowerCase().includes(q))
+    cards = cards.filter(
+      (c) =>
+        (c.name && c.name.toLowerCase().includes(q)) ||
+        c.kind.toLowerCase().includes(q) ||
+        (c.label && c.label.toLowerCase().includes(q))
     );
   }
 
@@ -124,7 +131,7 @@ function getVisibleCards(): Card[] {
       break;
     case 'lines':
       cards = [...cards].sort((a, b) => {
-        return (a.endLine - a.startLine) - (b.endLine - b.startLine) || a.startLine - b.startLine;
+        return a.endLine - a.startLine - (b.endLine - b.startLine) || a.startLine - b.startLine;
       });
       break;
   }
@@ -132,8 +139,10 @@ function getVisibleCards(): Card[] {
   return cards;
 }
 
+// @illusion: get_grouped_cards -> groups cards by kind -> returns ordered map
 function getGroupedCards(cards: Card[]): Map<string, Card[]> {
   const groups = new Map<string, Card[]>();
+  // @illusion: bucket_cards -> walks cards -> groups by kind into map
   for (const card of cards) {
     const key = card.kind.replace(/_/g, ' ');
     if (!groups.has(key)) groups.set(key, []);
@@ -142,15 +151,17 @@ function getGroupedCards(cards: Card[]): Map<string, Card[]> {
   return groups;
 }
 
-// @preserve @illusion: render -> rebuilds filter UI + grouped/animated card list from state
+// @illusion: render -> rebuilds filter UI + grouped/animated card list from state
 function render(): void {
   const total = state.allCards.length;
-  const annotated = state.allCards.filter(c => c.label != null).length;
+  const annotated = state.allCards.filter((c) => c.label != null).length;
   const visible = getVisibleCards();
 
   // ── Kind select ──
-  const uniqueKinds = [...new Set(state.allCards.map(c => c.kind))].sort();
+  const uniqueKinds = [...new Set(state.allCards.map((c) => c.kind))].sort();
+  // @illusion: clear_kind_options -> drops extra options -> keeps default
   while (kindSelect.options.length > 1) kindSelect.options.remove(1);
+  // @illusion: fill_kind_options -> walks unique kinds -> appends select options
   for (const k of uniqueKinds) {
     const opt = document.createElement('option');
     opt.value = k;
@@ -160,7 +171,7 @@ function render(): void {
   }
 
   // ── Filter chips ──
-  filterChips.forEach(chip => {
+  filterChips.forEach((chip) => {
     chip.classList.toggle('active', chip.dataset.status === state.filterStatus);
   });
 
@@ -190,11 +201,15 @@ function render(): void {
       const header = storyEl.querySelector('.story-header') as HTMLElement;
       const toggle = storyEl.querySelector('.story-toggle') as HTMLButtonElement;
       const copyBtn = storyEl.querySelector('.story-copy') as HTMLButtonElement;
+      // @illusion: toggle_story -> flips story collapsed state -> toggles chevron
       const toggleStory = () => {
         const collapsed = storyEl.classList.toggle('collapsed');
         toggle.classList.toggle('collapsed', collapsed);
       };
-      toggle.addEventListener('click', (e) => { e.stopPropagation(); toggleStory(); });
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleStory();
+      });
       header.addEventListener('click', toggleStory);
       copyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -232,6 +247,7 @@ function render(): void {
   } else if (state.groupByKind) {
     const groups = getGroupedCards(visible);
     let html = '';
+    // @illusion: render_groups -> walks kind groups -> emits group markup
     for (const [kind, gCards] of groups) {
       const isCollapsed = state.collapsedGroups.has(kind);
       const count = gCards.length;
@@ -242,6 +258,7 @@ function render(): void {
           <span class="group-count">${count}</span>
         </div>
         <div class="group-cards">`;
+      // @illusion: render_group_cards -> walks group cards -> emits each card
       for (const card of gCards) {
         html += buildCardHTML(card, state.lang);
       }
@@ -250,7 +267,7 @@ function render(): void {
     cardsEl.innerHTML = html;
 
     // Group toggle listeners
-    cardsEl.querySelectorAll('.group-header').forEach(header => {
+    cardsEl.querySelectorAll('.group-header').forEach((header) => {
       header.addEventListener('click', () => {
         const kind = (header as HTMLElement).dataset.kind!;
         if (state.collapsedGroups.has(kind)) {
@@ -269,11 +286,11 @@ function render(): void {
       });
     });
   } else {
-    cardsEl.innerHTML = visible.map(card => buildCardHTML(card, state.lang)).join('');
+    cardsEl.innerHTML = visible.map((card) => buildCardHTML(card, state.lang)).join('');
   }
 
   // ── Card interactivity ──
-  cardsEl.querySelectorAll('.card').forEach(el => {
+  cardsEl.querySelectorAll('.card').forEach((el) => {
     const cardDiv = el as HTMLElement;
     const cardId = cardDiv.dataset.cardId!;
     const codePre = cardDiv.querySelector('.card-code') as HTMLPreElement | null;
@@ -304,14 +321,14 @@ function render(): void {
   });
 
   // ── Card action buttons ──
-  cardsEl.querySelectorAll('.reveal-btn').forEach(btn => {
+  cardsEl.querySelectorAll('.reveal-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const { startLine, endLine } = (btn as HTMLElement).dataset;
       vscode.postMessage({ type: 'reveal', startLine: Number(startLine), endLine: Number(endLine) });
     });
   });
-  cardsEl.querySelectorAll('.scaffold-btn').forEach(btn => {
+  cardsEl.querySelectorAll('.scaffold-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const { startLine } = (btn as HTMLElement).dataset;
@@ -329,7 +346,7 @@ function render(): void {
   }
 }
 
-// @preserve @illusion: build_card_html -> emits one card's markup (head, label/badge, actions, code)
+// @illusion: build_card_html -> emits one card's markup (head, label/badge, actions, code)
 function buildCardHTML(card: Card, lang: string): string {
   const missing = card.label == null;
   const isEditing = state.editingCardId === card.id;
@@ -366,16 +383,20 @@ function buildCardHTML(card: Card, lang: string): string {
   </div>`;
 }
 
-// @preserve @illusion: start_editing -> marks a card as editing -> re-renders with input focused
+// @illusion: start_editing -> marks a card as editing -> re-renders with input focused
 function startEditing(cardId: string): void {
   state.editingCardId = cardId;
   render();
 }
 
-// @preserve @illusion: finish_editing -> commits label -> posts editAnnotation to extension
+// @illusion: finish_editing -> commits label -> posts editAnnotation to extension
 function finishEditing(cardId: string, newLabel: string): void {
-  const card = state.allCards.find(c => c.id === cardId);
-  if (!card) { state.editingCardId = null; render(); return; }
+  const card = state.allCards.find((c) => c.id === cardId);
+  if (!card) {
+    state.editingCardId = null;
+    render();
+    return;
+  }
 
   const trimmed = newLabel.trim();
   if (!trimmed || trimmed === card.label) {
@@ -396,6 +417,7 @@ function finishEditing(cardId: string, newLabel: string): void {
   });
 }
 
+// @illusion: cancel_editing -> clears editing state -> re-renders
 function cancelEditing(): void {
   state.editingCardId = null;
   render();
@@ -425,12 +447,16 @@ cardsEl.addEventListener('keydown', (e) => {
   }
 });
 
-cardsEl.addEventListener('blur', (e) => {
-  const input = e.target as HTMLInputElement;
-  if (input.tagName !== 'INPUT' || !input.closest('.card-label.editing')) return;
-  const cardId = input.dataset.cardId!;
-  finishEditing(cardId, input.value);
-}, true);
+cardsEl.addEventListener(
+  'blur',
+  (e) => {
+    const input = e.target as HTMLInputElement;
+    if (input.tagName !== 'INPUT' || !input.closest('.card-label.editing')) return;
+    const cardId = input.dataset.cardId!;
+    finishEditing(cardId, input.value);
+  },
+  true
+);
 
 // ── Global error handler ──
 window.addEventListener('error', (e) => {
@@ -441,30 +467,35 @@ window.addEventListener('error', (e) => {
 });
 
 // ── Collapse / Expand all ──
+// @illusion: collapse_all_cards -> clears expanded set -> hides all code
 function collapseAllCards(): void {
   state.cardExpanded.clear();
-  cardsEl.querySelectorAll('.card').forEach(el => {
+  cardsEl.querySelectorAll('.card').forEach((el) => {
     el.setAttribute('aria-expanded', 'false');
   });
-  cardsEl.querySelectorAll('.card-code').forEach(pre => {
+  cardsEl.querySelectorAll('.card-code').forEach((pre) => {
     (pre as HTMLPreElement).hidden = true;
   });
 }
 
+// @illusion: expand_all_cards -> marks all expanded -> shows all code
 function expandAllCards(): void {
+  // @illusion: collect_expanded -> walks cards -> marks all as expanded
   for (const card of state.allCards) {
     state.cardExpanded.add(card.id);
   }
-  cardsEl.querySelectorAll('.card-code').forEach(pre => {
+  cardsEl.querySelectorAll('.card-code').forEach((pre) => {
     (pre as HTMLPreElement).hidden = false;
   });
-  cardsEl.querySelectorAll('.card').forEach(el => {
+  cardsEl.querySelectorAll('.card').forEach((el) => {
     el.setAttribute('aria-expanded', 'true');
   });
 }
 
 // ── Init ──
+// @illusion: init -> wires webview events/handlers -> signals ready
 (function init(): void {
+  // @illusion: guard_init -> ignores init errors -> shows error banner
   try {
     // ── Search input ──
     searchInput.addEventListener('input', () => {
@@ -473,7 +504,7 @@ function expandAllCards(): void {
     });
 
     // ── Filter chips ──
-    filterChips.forEach(chip => {
+    filterChips.forEach((chip) => {
       chip.addEventListener('click', () => {
         const status = chip.dataset.status as UIState['filterStatus'];
         if (status !== state.filterStatus) {

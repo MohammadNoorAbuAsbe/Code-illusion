@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { AnalysisResult } from '../core/types';
 import { analyzeDocument } from '../core/annotations';
 
-// @preserve @illusion: get_active_editor -> gets editor or throws
+// @illusion: get_active_editor -> gets editor or throws
 export function getActiveEditor(): vscode.TextEditor {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
@@ -11,8 +11,9 @@ export function getActiveEditor(): vscode.TextEditor {
   return editor;
 }
 
-// @preserve @illusion: analyze_editor -> reads document -> delegates to analyzeDocument
+// @illusion: analyze_editor -> reads document -> forwards narrativeDepth setting
 export async function analyzeEditor(editor: vscode.TextEditor): Promise<AnalysisResult> {
   const doc = editor.document;
-  return analyzeDocument(doc.getText(), doc.languageId, doc.uri.fsPath);
+  const depth = vscode.workspace.getConfiguration('codeIllusion').get<number>('narrativeDepth');
+  return analyzeDocument(doc.getText(), doc.languageId, doc.uri.fsPath, { narrativeDepth: depth });
 }

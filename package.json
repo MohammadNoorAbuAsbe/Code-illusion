@@ -2,7 +2,7 @@
   "name": "code-illusion-detangler",
   "displayName": "Code Illusion De-tangler",
   "description": "Renders AI/agent-written code as a side-by-side 'De-cluttered View' of semantic micro-cards. Agents annotate blocks with inline @illusion comments; the extension collapses boilerplate into human-readable cards.",
-  "version": "0.1.0",
+  "version": "0.2.2",
   "publisher": "codeillusion",
   "engines": {
     "vscode": "^1.85.0"
@@ -34,6 +34,10 @@
         "title": "Code Illusion: Open De-cluttered View"
       },
       {
+        "command": "codeIllusion.openProjectView",
+        "title": "Code Illusion: Open Project Story"
+      },
+      {
         "command": "codeIllusion.checkCoverage",
         "title": "Code Illusion: Check Coverage"
       },
@@ -44,6 +48,10 @@
       {
         "command": "codeIllusion.initRules",
         "title": "Code Illusion: Init Agent Rules"
+      },
+      {
+        "command": "codeIllusion.initRulesForce",
+        "title": "Code Illusion: Init Agent Rules (Overwrite)"
       }
     ],
     "keybindings": [
@@ -52,7 +60,24 @@
         "key": "ctrl+alt+d",
         "mac": "cmd+alt+d"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Code Illusion De-tangler",
+      "properties": {
+        "codeIllusion.narrativeDepth": {
+          "type": "number",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "description": "How many call levels the narrative tree / execution flow descends into."
+        },
+        "codeIllusion.autoGenerateArtifacts": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-generate .code-illusion/ annotation health artifacts on startup and file save (COVERAGE.md, STORY.md, coverage.json)."
+        }
+      }
+    }
   },
   "scripts": {
     "build": "node esbuild.js",
@@ -63,10 +88,18 @@
     "format:check": "prettier --check \"src/**/*.ts\" \"*.json\"",
     "pretest:core": "node esbuild.js",
     "test:core": "node dist/test-core.js",
-    "test": "npm run test:core"
+    "test": "npm run test:core",
+    "cli": "node dist/cli.js",
+    "mcp": "node dist/mcp-server.js"
   },
   "dependencies": {
-    "web-tree-sitter": "^0.25.0"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "web-tree-sitter": "^0.25.0",
+    "zod": "^4.0.0"
+  },
+  "bin": {
+    "code-illusion": "dist/cli.js",
+    "code-illusion-mcp": "dist/mcp-server.js"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -74,7 +107,7 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "@vscode/tree-sitter-wasm": "^0.3.1",
-    "esbuild": "^0.21.0",
+    "esbuild": "^0.28.1",
     "eslint": "^8.57.0",
     "highlight.js": "^11.9.0",
     "prettier": "^3.2.0",

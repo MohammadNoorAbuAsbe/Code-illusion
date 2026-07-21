@@ -4,7 +4,7 @@ import { Card } from '../core/types';
 let annDecoration: vscode.TextEditorDecorationType | undefined;
 let missDecoration: vscode.TextEditorDecorationType | undefined;
 
-// @preserve @illusion: ensure_decoration_types -> creates ann + miss decoration types once
+// @illusion: ensure_decoration_types -> creates ann + miss decoration types once
 function ensureDecorationTypes(): void {
   if (!annDecoration) {
     annDecoration = vscode.window.createTextEditorDecorationType({
@@ -30,10 +30,11 @@ function ensureDecorationTypes(): void {
   }
 }
 
-// @preserve @illusion: cards_to_ranges -> maps cards to ann/miss whole-line ranges
+// @illusion: cards_to_ranges -> maps cards to ann/miss whole-line ranges
 function cardsToRanges(cards: Card[]): { ann: vscode.Range[]; miss: vscode.Range[] } {
   const ann: vscode.Range[] = [];
   const miss: vscode.Range[] = [];
+  // @illusion: range_cards -> walks cards -> maps to ann/miss whole-line ranges
   for (const card of cards) {
     const start = Math.max(0, card.startLine - 1);
     const end = Math.max(start, card.endLine - 1);
@@ -47,7 +48,7 @@ function cardsToRanges(cards: Card[]): { ann: vscode.Range[]; miss: vscode.Range
   return { ann, miss };
 }
 
-// @preserve @illusion: apply_decorations -> paints ann/miss markers on the active editor
+// @illusion: apply_decorations -> paints ann/miss markers on the active editor
 export function applyDecorations(editor: vscode.TextEditor, cards: Card[]): void {
   ensureDecorationTypes();
   const { ann, miss } = cardsToRanges(cards);
@@ -55,7 +56,7 @@ export function applyDecorations(editor: vscode.TextEditor, cards: Card[]): void
   editor.setDecorations(missDecoration!, miss);
 }
 
-// @preserve @illusion: clear_decorations -> removes markers from the editor
+// @illusion: clear_decorations -> removes markers from the editor
 export function clearDecorations(editor: vscode.TextEditor): void {
   if (annDecoration) editor.setDecorations(annDecoration, []);
   if (missDecoration) editor.setDecorations(missDecoration, []);

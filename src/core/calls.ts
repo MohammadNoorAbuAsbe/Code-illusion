@@ -11,13 +11,25 @@ const CALLABLE_KINDS = new Set([
   'variable_declarator',
 ]);
 
+// @illusion: is_callable_kind -> true for node kinds that can be direct call targets
 export function isCallableKind(kind: string): boolean {
   return CALLABLE_KINDS.has(kind);
 }
 
+// @illusion: extract_call_names -> walks node -> lists called identifiers (stops at nested blocks)
 export function extractCallNames(node: TSNode, blockPred: BlockPredicate): string[] {
   const names: string[] = [];
 
+  const seen = new Set<string>();
+  // @illusion: add_name -> deduplicates -> appends new call name
+  const addName = (name: string) => {
+    if (name && !seen.has(name)) {
+      seen.add(name);
+      names.push(name);
+    }
+  };
+
+  // @illusion: visit -> walks call nodes -> records called identifiers (stops at nested blocks)
   const visit = (n: TSNode) => {
     if (n !== node && blockPred(n)) {
       return;
@@ -26,15 +38,29 @@ export function extractCallNames(node: TSNode, blockPred: BlockPredicate): strin
       const fn = n.childForFieldName('function');
       if (fn) {
         if (fn.type === 'identifier') {
-          names.push(fn.text);
+          addName(fn.text);
         } else if (fn.type === 'member_expression') {
           const prop = fn.childForFieldName('property');
           if (prop && prop.type === 'property_identifier') {
-            names.push(prop.text);
+            addName(prop.text);
+          }
+        }
+      }
+    } else if (n.type === 'new_expression') {
+      // @illusion: capture_ctor -> reads constructor name -> records as call
+      const ctor = n.childForFieldName('constructor');
+      if (ctor) {
+        if (ctor.type === 'identifier') {
+          addName(ctor.text);
+        } else if (ctor.type === 'member_expression') {
+          const prop = ctor.childForFieldName('property');
+          if (prop && prop.type === 'property_identifier') {
+            addName(prop.text);
           }
         }
       }
     }
+    // @illusion: recurse_children -> walks children -> continues call scan
     for (const c of n.children) {
       visit(c);
     }
@@ -44,6 +70,7 @@ export function extractCallNames(node: TSNode, blockPred: BlockPredicate): strin
   return names;
 }
 
+// @illusion: build_call_graph -> maps calls to card edges -> computes entry points + external leaves
 export function buildCallGraph(
   blocks: BlockInfo[],
   blockPred: BlockPredicate,
@@ -52,6 +79,7 @@ export function buildCallGraph(
   const nameToCard = new Map<string, { cardId: string; name: string }>();
   const duplicateNames = new Map<string, string[]>();
 
+  // @illusion: index_blocks -> walks blocks -> maps names to cards (tracks duplicates)
   for (const b of blocks) {
     if (isCallableKind(b.kind) && b.name) {
       if (nameToCard.has(b.name)) {
@@ -65,8 +93,11 @@ export function buildCallGraph(
   }
 
   if (duplicateNames.size > 0) {
+    // @illusion: warn_duplicates -> walks dup names -> logs ambiguous call targets
     for (const [name, ids] of duplicateNames) {
-      console.warn(`Code Illusion: duplicate function name "${name}" (cards: ${ids.join(', ')}); call graph may be ambiguous`);
+      console.warn(
+        `Code Illusion: duplicate function name "${name}" (cards: ${ids.join(', ')}); call graph may be ambiguous`
+      );
     }
   }
 
@@ -74,10 +105,12 @@ export function buildCallGraph(
   const calledIds = new Set<string>();
   const externalCards = new Map<string, { name: string; label: string }>();
 
+  // @illusion: link_callees -> walks blocks -> builds call edges (local/duplicate/external)
   for (const b of blocks) {
     const callerId = b.cardId;
     const callNames = extractCallNames(b.node, blockPred);
 
+    // @illusion: resolve_targets -> walks callee names -> emits edges to resolved targets
     for (const name of callNames) {
       const target = nameToCard.get(name);
       if (target && target.cardId !== callerId) {

@@ -1,0 +1,405 @@
+{
+  "generatedAt": "2026-07-21T09:48:59.390Z",
+  "summary": {
+    "files": 29,
+    "totalBlocks": 235,
+    "annotatedBlocks": 191,
+    "annotPercent": 81,
+    "entryPoints": {
+      "total": 30,
+      "annotated": 29
+    }
+  },
+  "godNodes": [
+    {
+      "id": "g33",
+      "name": "allPlatforms",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installRules.ts",
+      "line": 32,
+      "inDegree": 9,
+      "annotated": true
+    },
+    {
+      "id": "g76",
+      "name": "analyzeDocument",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "line": 257,
+      "inDegree": 6,
+      "annotated": true
+    },
+    {
+      "id": "g161",
+      "name": "analyzeProject",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\project.ts",
+      "line": 124,
+      "inDegree": 5,
+      "annotated": true
+    },
+    {
+      "id": "g35",
+      "name": "resolveDestPath",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installRules.ts",
+      "line": 109,
+      "inDegree": 5,
+      "annotated": true
+    },
+    {
+      "id": "g0",
+      "name": "fail",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "line": 65,
+      "inDegree": 4,
+      "annotated": true
+    },
+    {
+      "id": "g127",
+      "name": "getDefaultOutDir",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\export.ts",
+      "line": 352,
+      "inDegree": 4,
+      "annotated": true
+    },
+    {
+      "id": "g157",
+      "name": "resolveInputs",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\project.ts",
+      "line": 97,
+      "inDegree": 4,
+      "annotated": true
+    },
+    {
+      "id": "g136",
+      "name": "languageIdFromPath",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\languages.ts",
+      "line": 48,
+      "inDegree": 4,
+      "annotated": true
+    },
+    {
+      "id": "g17",
+      "name": "out",
+      "kind": "variable_declarator",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "line": 294,
+      "inDegree": 4,
+      "annotated": false
+    },
+    {
+      "id": "g134",
+      "name": "getLanguageConfig",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\languages.ts",
+      "line": 22,
+      "inDegree": 4,
+      "annotated": true
+    },
+    {
+      "id": "g213",
+      "name": "escapeHtml",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\ui\\main.ts",
+      "line": 56,
+      "inDegree": 4,
+      "annotated": true
+    },
+    {
+      "id": "g176",
+      "name": "scaffoldProposals",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\scaffold.ts",
+      "line": 22,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g60",
+      "name": "getActiveEditor",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "line": 6,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g61",
+      "name": "analyzeEditor",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "line": 15,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g86",
+      "name": "extractCallNames",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\calls.ts",
+      "line": 20,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g216",
+      "name": "icon",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\ui\\main.ts",
+      "line": 92,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g220",
+      "name": "render",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\ui\\main.ts",
+      "line": 155,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g38",
+      "name": "installPlatform",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installRules.ts",
+      "line": 141,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g126",
+      "name": "buildArtifacts",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\export.ts",
+      "line": 322,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g129",
+      "name": "writeArtifacts",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\export.ts",
+      "line": 364,
+      "inDegree": 2,
+      "annotated": true
+    }
+  ],
+  "surprisingConnections": [
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "main",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installHook.ts",
+      "calleeName": "installPrecommitHook",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "main",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\export.ts",
+      "calleeName": "getDefaultOutDir",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "main",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installRules.ts",
+      "calleeName": "installPlatform",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "main",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installRules.ts",
+      "calleeName": "allPlatforms",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "main",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\uninstallRules.ts",
+      "calleeName": "uninstallSingle",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "main",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\uninstallRules.ts",
+      "calleeName": "uninstallAll",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "main",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\uninstallRules.ts",
+      "calleeName": "purgeOutDir",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "main",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installRules.ts",
+      "calleeName": "listInstalled",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "main",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\project.ts",
+      "calleeName": "resolveInputs",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": null,
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installRules.ts",
+      "calleeName": "allPlatforms",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": null,
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installRules.ts",
+      "calleeName": "installPlatform",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": null,
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\installRules.ts",
+      "calleeName": "allPlatforms",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "runSingleFile",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\languages.ts",
+      "calleeName": "languageIdFromPath",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "runSingleFile",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "calleeName": "analyzeDocument",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "runSingleFile",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\scaffold.ts",
+      "calleeName": "scaffoldProposals",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "runProject",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\project.ts",
+      "calleeName": "analyzeProject",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "runProject",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\export.ts",
+      "calleeName": "buildArtifacts",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "runProject",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\export.ts",
+      "calleeName": "writeArtifacts",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "runProject",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\export.ts",
+      "calleeName": "writeGitignore",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "callerName": "runProject",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\export.ts",
+      "calleeName": "getDefaultOutDir",
+      "calleeAnnotated": true
+    }
+  ],
+  "directoryCoverage": [
+    {
+      "directory": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview",
+      "annotated": 21,
+      "total": 21,
+      "percent": 100
+    },
+    {
+      "directory": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\ui",
+      "annotated": 23,
+      "total": 23,
+      "percent": 100
+    },
+    {
+      "directory": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core",
+      "annotated": 106,
+      "total": 116,
+      "percent": 91
+    },
+    {
+      "directory": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands",
+      "annotated": 24,
+      "total": 37,
+      "percent": 65
+    },
+    {
+      "directory": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src",
+      "annotated": 17,
+      "total": 38,
+      "percent": 45
+    }
+  ],
+  "priorityGaps": [
+    {
+      "id": "g17",
+      "name": "out",
+      "kind": "variable_declarator",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "line": 294,
+      "inDegree": 4,
+      "calledBy": [
+        "runProject",
+        "for_in_statement"
+      ]
+    },
+    {
+      "id": "g188",
+      "name": "assert",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\test-core.ts",
+      "line": 57,
+      "inDegree": 2,
+      "calledBy": [
+        "try_statement"
+      ]
+    },
+    {
+      "id": "g14",
+      "name": "runSingleFile",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\cli.ts",
+      "line": 224,
+      "inDegree": 1,
+      "calledBy": [
+        "main"
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ const DIST = path.join(ROOT, 'dist');
 
 const WATCH = process.argv.includes('--watch');
 
-// @preserve @illusion: copy_file_safe -> copies file if source exists -> creates parent dirs
+// @illusion: copy_file_safe -> copies file if source exists -> creates parent dirs
 function copyFileSafe(from, to) {
   if (fs.existsSync(from)) {
     fs.mkdirSync(path.dirname(to), { recursive: true });
@@ -18,7 +18,7 @@ function copyFileSafe(from, to) {
   }
 }
 
-// @preserve @illusion: copy_grammars -> copies tree-sitter runtime and grammar wasm files to dist
+// @illusion: copy_grammars -> copies tree-sitter runtime and grammar wasm files to dist
 async function copyGrammars() {
   const wtsRoot = path.dirname(require.resolve('web-tree-sitter'));
   const runtimeWasm = path.join(wtsRoot, 'tree-sitter.wasm');
@@ -36,13 +36,13 @@ async function copyGrammars() {
     'tree-sitter-go.wasm',
     'tree-sitter-rust.wasm'
   ];
-  // @preserve @illusion: copy_grammar_files -> iterate grammar list -> copy each wasm
+  // @illusion: copy_grammar_files -> iterate grammar list -> copy each wasm
   for (const f of wanted) {
     copyFileSafe(path.join(srcWasm, f), path.join(DIST, 'grammars', f));
   }
 }
 
-// @preserve @illusion: copy_webview_assets -> copies CSS to dist/webview
+// @illusion: copy_webview_assets -> copies CSS to dist/webview
 async function copyWebviewAssets() {
   copyFileSafe(
     path.join(ROOT, 'src', 'webview', 'ui', 'styles.css'),
@@ -50,14 +50,14 @@ async function copyWebviewAssets() {
   );
 }
 
-// @preserve @illusion: copy_agent_rules -> copies .md/.mdc rule files from src to dist/agent-rules
+// @illusion: copy_agent_rules -> copies .md/.mdc rule files from src to dist/agent-rules
 async function copyAgentRules() {
   const srcDir = path.join(ROOT, 'src', 'agent-rules');
   const destDir = path.join(DIST, 'agent-rules');
   if (!fs.existsSync(srcDir)) {
     return;
   }
-  // @preserve @illusion: iterate_agent_rules -> read src dir -> copy matching files
+  // @illusion: iterate_agent_rules -> read src dir -> copy matching files
   for (const f of fs.readdirSync(srcDir)) {
     if (f.endsWith('.md') || f.endsWith('.mdc')) {
       copyFileSafe(path.join(srcDir, f), path.join(destDir, f));
@@ -65,7 +65,13 @@ async function copyAgentRules() {
   }
 }
 
-// @preserve @illusion: main_build -> builds 3 bundles (extension, webview, test) -> copies assets
+// @illusion: main_build -> builds 3 bundles (extension, webview, test) -> copies assets
+// @illusion: node_define_banner -> defines import.meta.url in cjs bundle -> fixes web-tree-sitter require
+const NODE_DEFINE = { 'import.meta.url': '__importMetaUrl' };
+const NODE_BANNER = {
+  js: "const { pathToFileURL: __pathToFileURL } = require('url'); const __importMetaUrl = __pathToFileURL(__filename).href;",
+};
+
 async function main() {
   fs.mkdirSync(DIST, { recursive: true });
 
@@ -76,7 +82,9 @@ async function main() {
     platform: 'node',
     target: 'node18',
     format: 'cjs',
-    external: ['vscode', 'web-tree-sitter', '@vscode/tree-sitter-wasm'],
+    external: ['vscode', '@vscode/tree-sitter-wasm'],
+    define: NODE_DEFINE,
+    banner: NODE_BANNER,
     sourcemap: true,
     logLevel: 'info',
     legalComments: 'inline'
@@ -101,7 +109,41 @@ async function main() {
     platform: 'node',
     target: 'node18',
     format: 'cjs',
-    external: ['web-tree-sitter', '@vscode/tree-sitter-wasm'],
+    external: ['@vscode/tree-sitter-wasm'],
+    define: NODE_DEFINE,
+    banner: NODE_BANNER,
+    sourcemap: true,
+    logLevel: 'info',
+    legalComments: 'inline'
+  };
+
+  const CLI_EXTERNAL = ['vscode', '@vscode/tree-sitter-wasm', '@modelcontextprotocol/sdk', 'zod'];
+
+  const cliCtx = {
+    entryPoints: [path.join(ROOT, 'src', 'cli.ts')],
+    bundle: true,
+    outfile: path.join(DIST, 'cli.js'),
+    platform: 'node',
+    target: 'node18',
+    format: 'cjs',
+    external: CLI_EXTERNAL,
+    define: NODE_DEFINE,
+    banner: NODE_BANNER,
+    sourcemap: true,
+    logLevel: 'info',
+    legalComments: 'inline'
+  };
+
+  const mcpCtx = {
+    entryPoints: [path.join(ROOT, 'src', 'mcp-server.ts')],
+    bundle: true,
+    outfile: path.join(DIST, 'mcp-server.js'),
+    platform: 'node',
+    target: 'node18',
+    format: 'cjs',
+    external: CLI_EXTERNAL,
+    define: NODE_DEFINE,
+    banner: NODE_BANNER,
     sourcemap: true,
     logLevel: 'info',
     legalComments: 'inline'
@@ -120,6 +162,8 @@ async function main() {
     await esbuild.build(extensionCtx);
     await esbuild.build(webviewCtx);
     await esbuild.build(testCtx);
+    await esbuild.build(cliCtx);
+    await esbuild.build(mcpCtx);
     await copyGrammars();
     await copyWebviewAssets();
     await copyAgentRules();

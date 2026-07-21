@@ -7,7 +7,7 @@ const FUNC_TYPES = new Set([
   'method_definition',
   'method_declaration',
   'constructor',
-  'variable_declarator'
+  'variable_declarator',
 ]);
 
 const CLASS_TYPES = new Set(['class_declaration', 'class_definition']);
@@ -17,9 +17,10 @@ const BLOCK_TYPES = new Set([
   'for_statement',
   'while_statement',
   'for_in_statement',
-  'for_of_statement'
+  'for_of_statement',
 ]);
 
+// @illusion: is_function_value -> checks if a variable_declarator's value is a function
 function isFunctionValue(node: TSNode): boolean {
   const v = node.childForFieldName('value');
   if (!v) {
@@ -28,6 +29,7 @@ function isFunctionValue(node: TSNode): boolean {
   return v.type === 'arrow_function' || v.type.includes('function');
 }
 
+// @illusion: is_block -> true if node is an extractable function/class/loop/try block
 export function isBlock(node: TSNode): boolean {
   const t = node.type;
   if (CLASS_TYPES.has(t)) {
@@ -51,6 +53,7 @@ export function isCallScopeBoundary(node: TSNode): boolean {
   return isBlock(node);
 }
 
+// @illusion: get_block_name -> reads the node's name field -> returns block identifier
 export function getBlockName(node: TSNode): string | null {
   if (node.type === 'constructor') {
     return 'constructor';
@@ -68,12 +71,15 @@ export function getBlockName(node: TSNode): string | null {
   return null;
 }
 
+// @illusion: extract_blocks -> walks tree -> collects all extractable blocks with names
 export function extractBlocks(tree: { rootNode: TSNode }): BlockDescriptor[] {
   const out: BlockDescriptor[] = [];
+  // @illusion: visit -> recurses tree nodes -> records extractable blocks
   const visit = (node: TSNode) => {
     if (isBlock(node)) {
       out.push({ node, kind: node.type, name: getBlockName(node) });
     }
+    // @illusion: recurse_children -> walks node children -> visits each
     for (const c of node.children) {
       visit(c);
     }

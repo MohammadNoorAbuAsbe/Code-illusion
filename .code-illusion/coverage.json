@@ -1,0 +1,364 @@
+{
+  "generatedAt": "2026-07-21T09:07:02.587Z",
+  "summary": {
+    "files": 23,
+    "totalBlocks": 172,
+    "annotatedBlocks": 161,
+    "annotPercent": 94,
+    "entryPoints": {
+      "total": 25,
+      "annotated": 25
+    }
+  },
+  "godNodes": [
+    {
+      "id": "g84",
+      "name": "getLanguageConfig",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\languages.ts",
+      "line": 22,
+      "inDegree": 4,
+      "annotated": true
+    },
+    {
+      "id": "g150",
+      "name": "escapeHtml",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\ui\\main.ts",
+      "line": 56,
+      "inDegree": 4,
+      "annotated": true
+    },
+    {
+      "id": "g10",
+      "name": "getActiveEditor",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "line": 6,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g11",
+      "name": "analyzeEditor",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "line": 15,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g26",
+      "name": "analyzeDocument",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "line": 257,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g36",
+      "name": "extractCallNames",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\calls.ts",
+      "line": 20,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g153",
+      "name": "icon",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\ui\\main.ts",
+      "line": 92,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g157",
+      "name": "render",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\ui\\main.ts",
+      "line": 155,
+      "inDegree": 3,
+      "annotated": true
+    },
+    {
+      "id": "g29",
+      "name": "isBlock",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\blocks.ts",
+      "line": 33,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g13",
+      "name": "precedingComments",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "line": 24,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g16",
+      "name": "extractLabel",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "line": 79,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g100",
+      "name": "parse",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\parser.ts",
+      "line": 49,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g32",
+      "name": "extractBlocks",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\blocks.ts",
+      "line": 75,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g24",
+      "name": "analyzeFileCore",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "line": 218,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g58",
+      "name": "resolveExternalLabels",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\crossfile.ts",
+      "line": 126,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g92",
+      "name": "composeNarratives",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\narrative.ts",
+      "line": 101,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g95",
+      "name": "buildExecutionFlow",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\narrative.ts",
+      "line": 132,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g33",
+      "name": "visit",
+      "kind": "variable_declarator",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\blocks.ts",
+      "line": 78,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g38",
+      "name": "visit",
+      "kind": "variable_declarator",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\calls.ts",
+      "line": 33,
+      "inDegree": 2,
+      "annotated": true
+    },
+    {
+      "id": "g35",
+      "name": "isCallableKind",
+      "kind": "function_declaration",
+      "file": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\calls.ts",
+      "line": 15,
+      "inDegree": 2,
+      "annotated": true
+    }
+  ],
+  "surprisingConnections": [
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\checkCoverage.ts",
+      "callerName": "checkCoverageCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "calleeName": "getActiveEditor",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\checkCoverage.ts",
+      "callerName": "checkCoverageCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "calleeName": "analyzeEditor",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\openProjectStory.ts",
+      "callerName": "openProjectStoryCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\project.ts",
+      "calleeName": "analyzeProject",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\openProjectStory.ts",
+      "callerName": "openProjectStoryCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\projectStory.ts",
+      "calleeName": "showProjectStory",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\openView.ts",
+      "callerName": "openViewCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "calleeName": "getActiveEditor",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\openView.ts",
+      "callerName": "openViewCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "calleeName": "analyzeEditor",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\openView.ts",
+      "callerName": "openViewCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\panel.ts",
+      "calleeName": "showDeclutteredView",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\scaffold.ts",
+      "callerName": "scaffoldCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "calleeName": "getActiveEditor",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\scaffold.ts",
+      "callerName": "scaffoldCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "calleeName": "analyzeEditor",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\scaffold.ts",
+      "callerName": "scaffoldCommand",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\scaffold.ts",
+      "calleeName": "scaffoldProposals",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands\\util.ts",
+      "callerName": "analyzeEditor",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "calleeName": "analyzeDocument",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "callerName": null,
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\blocks.ts",
+      "calleeName": "isBlock",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "callerName": "analyzeFileCore",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\languages.ts",
+      "calleeName": "getLanguageConfig",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "callerName": null,
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\parser.ts",
+      "calleeName": "parse",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "callerName": null,
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\blocks.ts",
+      "calleeName": "extractBlocks",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "callerName": null,
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\crossfile.ts",
+      "calleeName": "extractImports",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "callerName": "analyzeDocument",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\crossfile.ts",
+      "calleeName": "resolveExternalLabels",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "callerName": "analyzeDocument",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\languages.ts",
+      "calleeName": "getLanguageConfig",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "callerName": "analyzeDocument",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\calls.ts",
+      "calleeName": "buildCallGraph",
+      "calleeAnnotated": true
+    },
+    {
+      "callerFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\annotations.ts",
+      "callerName": "analyzeDocument",
+      "calleeFile": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core\\narrative.ts",
+      "calleeName": "composeNarratives",
+      "calleeAnnotated": true
+    }
+  ],
+  "directoryCoverage": [
+    {
+      "directory": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview",
+      "annotated": 21,
+      "total": 21,
+      "percent": 100
+    },
+    {
+      "directory": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\webview\\ui",
+      "annotated": 23,
+      "total": 23,
+      "percent": 100
+    },
+    {
+      "directory": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\commands",
+      "annotated": 11,
+      "total": 12,
+      "percent": 92
+    },
+    {
+      "directory": "C:\\Users\\MohammadNoor\\Documents\\GitHub\\Code illusion\\src\\core",
+      "annotated": 106,
+      "total": 116,
+      "percent": 91
+    }
+  ],
+  "priorityGaps": []
+}

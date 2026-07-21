@@ -13,9 +13,7 @@ export interface TSNode {
   childForFieldName(name: string): TSNode | null;
 }
 
-export type CommentStyle =
-  | { kind: 'line'; token: string }
-  | { kind: 'html'; open: string; close: string };
+export type CommentStyle = { kind: 'line'; token: string } | { kind: 'html'; open: string; close: string };
 
 export interface LanguageConfig {
   grammar: string;
@@ -26,6 +24,7 @@ export interface LanguageConfig {
 
 export interface Card {
   id: string;
+  filePath?: string;
   startLine: number;
   endLine: number;
   kind: string;
@@ -75,4 +74,5 @@ export interface AnalysisResult {
   source: string;
   cards: Card[];
   executionFlow: string;
+  note?: string;
 }
