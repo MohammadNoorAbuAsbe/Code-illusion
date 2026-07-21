@@ -29,23 +29,16 @@ Language styles: `// @illusion:` (JS/TS/Java/C#/Go/Rust), `# @illusion:` (Python
 
 ## Helper commands
 
-- `Code Illusion: Open De-cluttered View` (Ctrl+Alt+D / Cmd+Alt+D), `Open Project Story`, `Check Coverage`, `Scaffold Annotations`, `Init Agent Rules` (use `(Overwrite)` to refresh existing files).
+- `Code Illusion: Open De-cluttered View` (Ctrl+Alt+D / Cmd+Alt+D), `Jump to Next Missing Annotation` (Ctrl+Alt+I / Cmd+Alt+I), `Open Project Story`, `Check Coverage`, `Scaffold Annotations`, `Init Agent Rules` (use `(Overwrite)` to refresh existing files).
 
 ## Headless usage (CLI & MCP)
 
 The editor-free analysis engine also runs from the CLI or an MCP server (`npm run build` first).
 
-**CLI (`code-illusion`)** — subcommands `check`, `story`, `narrative`, `analyze`, `scaffold`; flags
-`--json`, `--depth N` (1–6), `--write` (scaffold only). `<path>` is a file, directory, or glob:
-
-```bash
-code-illusion check "src/**/*.ts"
-code-illusion story ./src
-code-illusion scaffold ./src --write
-```
-
-**CLI (`code-illusion`)** — subcommands `check`, `story`, `narrative`, `analyze`, `scaffold`, `generate`, `hook`, `install`, `uninstall`, `list`, `serve`; flags
-`--json`, `--depth N` (1–6), `--write` (scaffold only), `--out DIR` (generate only), `--platform NAME` (install/uninstall), `--force` (install):
+**CLI (`code-illusion`)** — subcommands `check`, `story`, `narrative`, `analyze`, `scaffold`, `generate`, `hook`,
+`install`, `uninstall`, `list`, `serve`; flags `--json`, `--depth N` (1–6), `--write` (scaffold only), `--out DIR`
+(generate only), `--platform NAME` (install/uninstall), `--force` (install), `--purge` (uninstall). `<path>` is a file,
+directory, or glob:
 
 ```bash
 code-illusion check "src/**/*.ts"
@@ -59,8 +52,8 @@ code-illusion serve
 ```
 
 **MCP server (`code-illusion-mcp`)** — register over stdio with any MCP client (Claude Desktop,
-opencode, etc.). Tools: `check_coverage`, `get_story`, `get_narrative`, `scaffold_missing`, `generate_artifacts` (each takes
-`file` / `directory` / `pattern`):
+opencode, etc.). Five tools: `check_coverage`, `get_story`, `get_narrative`, `scaffold_missing`, `generate_artifacts`
+(each takes `file` / `directory` / `pattern`):
 
 ```json
 { "mcpServers": { "code-illusion": { "command": "node", "args": ["dist/mcp-server.js"] } } }

@@ -81,6 +81,8 @@ This one file compresses the annotation health of the entire project into a page
 
 - `Code Illusion: Open De-cluttered View` — side-by-side cards; missing annotations show a
   `⚠ missing @illusion` badge. (Keybinding: `Ctrl+Alt+D` / `Cmd+Alt+D`.)
+- `Code Illusion: Jump to Next Missing Annotation` — jump cursor to the next unannotated block.
+  (Keybinding: `Ctrl+Alt+I` / `Cmd+Alt+I`.)
 - `Code Illusion: Open Project Story` — opens a unified, cross-file execution-flow story of the
   whole project (resolves imports to real functions across modules).
 - `Code Illusion: Check Coverage` — lists every unannotated block in the Problems panel. Use it to
@@ -123,7 +125,7 @@ Options: `--json` (machine-readable), `--depth N` (narrative depth 1–6), `--wr
 
 ### MCP server (`code-illusion-mcp`, `npm run mcp`)
 
-Run over stdio and register with any MCP client (Claude Desktop, opencode, etc.). It exposes four
+Run over stdio and register with any MCP client (Claude Desktop, opencode, etc.). It exposes five
 tools, each accepting a `file`, a `directory`, or a `pattern` (glob); directory/pattern scopes return
 the unified cross-file analysis.
 

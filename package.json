@@ -14,14 +14,30 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/codeillusion/vscode-code-illusion-detangler"
+    "url": "https://github.com/codeillusion/vscode-code-illusion-detangler",
+    "directory": "."
+  },
+  "homepage": "https://github.com/codeillusion/vscode-code-illusion-detangler",
+  "bugs": {
+    "url": "https://github.com/codeillusion/vscode-code-illusion-detangler/issues"
   },
   "icon": "icon.png",
   "galleryBanner": {
-    "color": "#1e1e1e",
+    "color": "#1e1e2e",
     "theme": "dark"
   },
-  "qna": "markdown",
+  "qna": "https://github.com/codeillusion/vscode-code-illusion-detangler/discussions",
+  "keywords": [
+    "ai",
+    "agent",
+    "annotation",
+    "code-visualization",
+    "tree-sitter",
+    "call-graph",
+    "narrative",
+    "mcp",
+    "declutter"
+  ],
   "license": "MIT",
   "main": "./dist/extension.js",
   "activationEvents": [
@@ -52,6 +68,10 @@
       {
         "command": "codeIllusion.initRulesForce",
         "title": "Code Illusion: Init Agent Rules (Overwrite)"
+      },
+      {
+        "command": "codeIllusion.jumpNextMissing",
+        "title": "Code Illusion: Jump to Next Missing Annotation"
       }
     ],
     "keybindings": [
@@ -59,6 +79,12 @@
         "command": "codeIllusion.openView",
         "key": "ctrl+alt+d",
         "mac": "cmd+alt+d"
+      },
+      {
+        "command": "codeIllusion.jumpNextMissing",
+        "key": "ctrl+alt+i",
+        "mac": "cmd+alt+i",
+        "when": "editorFocus"
       }
     ],
     "configuration": {

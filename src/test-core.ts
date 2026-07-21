@@ -8,6 +8,13 @@ import { Card, CallGraphEdge } from './core/types';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { createState } from './test/assert';
+import { runTests as runBlocksTests } from './test/blocks.test';
+import { runTests as runNarrativeTests } from './test/narrative.test';
+import { runTests as runAnnotationTests } from './test/annotations.test';
+import { runTests as runFallbackTests } from './test/fallback.test';
+import { runTests as runScaffoldTests } from './test/scaffold.test';
+import { runTests as runLanguageTests } from './test/languages.test';
 
 const sample = `// @illusion: main -> runs pipeline -> coordinates work
 function main() {
@@ -54,6 +61,7 @@ const htmlSample = `<!-- @illusion: header_section -> renders page header with n
 let passed = 0;
 let failed = 0;
 
+// @illusion: assert -> checks condition -> logs pass or fail -> increments counters
 function assert(label: string, condition: boolean, detail?: string): void {
   if (condition) {
     passed++;
@@ -213,6 +221,7 @@ function inner(v) { return v; }
 
   console.log('\n=== Cross-file external callees (Bug B) ===');
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-xfile-'));
+  // @illusion: cross_file_test -> sets up temp util.js and main.js -> tests external label resolution
   try {
     const utilPath = path.join(tmpDir, 'util.js');
     fs.writeFileSync(
@@ -412,6 +421,7 @@ function doThing() {
 
   console.log('\n=== Project-wide analysis (unified cross-file graph) ===');
   const projDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-proj-'));
+  // @illusion: project_wide_test -> sets up temp multi-file project -> tests unified analysis
   try {
     fs.writeFileSync(
       path.join(projDir, 'util.js'),
@@ -464,8 +474,19 @@ function render() {
     fs.rmSync(projDir, { recursive: true, force: true });
   }
 
-  console.log(`\n======= RESULTS: ${passed} passed, ${failed} failed =======`);
-  process.exitCode = failed > 0 ? 1 : 0;
+  // @illusion: run_module_tests -> runs all new modular test suites and aggregates results
+  const moduleState = createState();
+  await runBlocksTests(moduleState);
+  await runNarrativeTests(moduleState);
+  await runAnnotationTests(moduleState);
+  await runFallbackTests(moduleState);
+  await runScaffoldTests(moduleState);
+  await runLanguageTests(moduleState);
+
+  const totalPassed = passed + moduleState.passed;
+  const totalFailed = failed + moduleState.failed;
+  console.log(`\n======= RESULTS: ${totalPassed} passed, ${totalFailed} failed =======`);
+  process.exitCode = totalFailed > 0 ? 1 : 0;
 })().catch((e) => {
   console.error('Test suite error:', e);
   process.exitCode = 1;

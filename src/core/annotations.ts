@@ -112,91 +112,168 @@ export function buildCardFromBlock(block: { node: TSNode; kind: string; name: st
   };
 }
 
-// @illusion: analyze_fallback -> regex extracts @illusion blocks when no grammar is available
+// @illusion: find_brace_scope -> walks forward from start -> tracks brace depth -> returns end line
+function findBraceScope(lines: string[], start: number): number {
+  let depth = 0;
+  let started = false;
+  for (let i = start; i < lines.length; i++) {
+    for (const ch of lines[i]) {
+      if (ch === '{') { depth++; started = true; }
+      else if (ch === '}') { depth--; }
+    }
+    if (started && depth === 0) return i;
+  }
+  return lines.length - 1;
+}
+
+// @illusion: classify_decl -> examines a line -> determines block kind and name
+function classifyDecl(line: string): { kind: string | null; name: string | null } {
+  const declKinds = ['async function', 'function', 'class', 'constructor'];
+  for (const dk of declKinds) {
+    const re = new RegExp(`^(?:export\\s+)?(?:default\\s+)?(?:async\\s+)?${dk}\\s+([A-Za-z_$][\\w$]*)`);
+    const m = line.match(re);
+    if (m) return { kind: dk.includes('function') ? 'function_declaration' : dk, name: m[1] };
+  }
+  const anonFn = /^(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s*\(/;
+  if (anonFn.test(line)) return { kind: 'function_expression', name: null };
+  const classRe = /^(?:export\s+)?(?:default\s+)?class\s*\{/;
+  if (classRe.test(line)) return { kind: 'class_declaration', name: null };
+  const tryRe = /^\s*try\s*\{/;
+  if (tryRe.test(line)) return { kind: 'try_statement', name: null };
+  const loopRe = /^\s*(for|while|do)\s*\(/;
+  const loopM = line.match(loopRe);
+  if (loopM) return { kind: `${loopM[1]}_statement`, name: null };
+  const forOf = /^\s*for\s*\(/;
+  if (forOf.test(line)) return { kind: 'for_statement', name: null };
+  const varFnRe = /^(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?\(/;
+  const varFnM = line.match(varFnRe);
+  if (varFnM) return { kind: 'variable_declarator', name: varFnM[1] };
+  const varArrowRe = /^(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function\s*)?\(/;
+  const varArrowM = line.match(varArrowRe);
+  if (varArrowM) return { kind: 'variable_declarator', name: varArrowM[1] };
+  const methodRe = /^\s*(?:async\s+)?(?:get\s+|set\s+)?([A-Za-z_$][\w$]*)\s*\(/;
+  const methodM = line.match(methodRe);
+  if (methodM && !methodM[1].startsWith('if') && !methodM[1].startsWith('for') && !methodM[1].startsWith('while')) {
+    return { kind: 'method_definition', name: methodM[1] };
+  }
+  return { kind: null, name: null };
+}
+
+// @illusion: extract_calls_lines -> walks block range -> returns deduplicated call names
+function extractCallsLines(lines: string[], start: number, end: number): string[] {
+  const callRe = /([A-Za-z_$][\w$]*)\s*\(/g;
+  const seen = new Set<string>();
+  const calls: string[] = [];
+  for (let i = start; i <= end; i++) {
+    const line = lines[i];
+    callRe.lastIndex = 0;
+    let cm: RegExpExecArray | null;
+    while ((cm = callRe.exec(line)) !== null) {
+      const candidate = cm[1];
+      if (!seen.has(candidate) && !DECL_KEYWORDS.has(candidate)) {
+        seen.add(candidate);
+        calls.push(candidate);
+      }
+    }
+  }
+  return calls;
+}
+
+// @illusion: analyze_fallback -> regex extracts all blocks (annotated and unannotated) when no grammar is available
 function analyzeFallback(source: string): Card[] {
   const lines = source.split('\n');
   const cards: Card[] = [];
-  const re = /@illusion\s*:\s*(.+)/;
-  const blockStartRe =
-    /^\s*(?:(?:export|async|default|static|declare|abstract|public|private|protected|readonly)\s+)*(?:function|class|constructor|try|for|while|do|switch|if|catch|else|const|let|var|[A-Za-z_$][\w$]*\s*\()\b/;
-  const nameRe = /(?:function|class|\b(?:const|let|var))\s+([A-Za-z_$][\w$]*)/;
-  const callRe = /([A-Za-z_$][\w$]*)\s*\(/g;
+  const annoRe = /@illusion\s*:\s*(.+)/;
+  let i = 0;
 
-  // @illusion: scan_lines -> walks source lines -> extracts @illusion annotation blocks
-  for (let i = 0; i < lines.length; i++) {
-    const m = lines[i].match(re);
-    if (!m) {
+  while (i < lines.length) {
+    const line = lines[i];
+    const labelMatch = line.match(annoRe);
+    const decl = classifyDecl(line);
+    let kind: string;
+    let name: string | null;
+    let label: string | null = null;
+    let blockStart: number;
+    let blockEnd: number;
+
+    if (labelMatch) {
+      label = labelMatch[1].trim().replace(/\*\/\s*$/, '').trim();
+      blockStart = i;
+      const nextLine = lines[i + 1] || '';
+      const nextDecl = classifyDecl(nextLine);
+      if (nextDecl.kind) {
+        kind = nextDecl.kind;
+        name = nextDecl.name;
+      } else {
+        kind = 'annotation';
+        name = null;
+      }
+      blockEnd = i;
+      for (let j = i + 1; j < lines.length; j++) {
+        const trimmed = lines[j].trim();
+        if (trimmed === '' || annoRe.test(lines[j])) {
+          blockEnd = j - 1;
+          break;
+        }
+        if (j === lines.length - 1) { blockEnd = j; break; }
+      }
+    } else if (decl.kind) {
+      kind = decl.kind;
+      name = decl.name;
+      blockStart = i;
+      label = null;
+      if (line.includes('{') && !line.includes('}')) {
+        blockEnd = findBraceScope(lines, i);
+      } else if (line.includes('=>') && !line.includes('{')) {
+        blockEnd = i;
+      } else {
+        blockEnd = i;
+        for (let j = i + 1; j < lines.length; j++) {
+          const trimmed = lines[j].trim();
+          if (trimmed.startsWith('function') || trimmed.startsWith('class') ||
+              trimmed.startsWith('for') || trimmed.startsWith('while') ||
+              trimmed.startsWith('try') || trimmed.startsWith('do') ||
+              trimmed.startsWith('}') || trimmed.startsWith('// @illusion') ||
+              annoRe.test(trimmed)) {
+            blockEnd = j - 1;
+            break;
+          }
+          if (j === lines.length - 1) { blockEnd = j; break; }
+        }
+      }
+    } else {
+      i++;
       continue;
     }
-    let end = i;
 
-    // @illusion: find_block_end -> walks forward -> bounds the annotation's block span
-    for (let j = i + 1; j < lines.length; j++) {
-      const trimmed = lines[j].trim();
-      if (trimmed === '' || re.test(lines[j])) {
-        end = j - 1;
-        break;
-      }
-      if (j === lines.length - 1) {
-        end = j;
-        break;
-      }
-    }
-
-    let kind = 'annotation';
-    let name: string | null = null;
-    const blockLine = lines[i + 1] || '';
-    const blockMatch = blockStartRe.exec(blockLine);
-    if (blockMatch) {
-      if (blockMatch[0].trim().startsWith('(') || /[A-Za-z_$][\w$]*\s*\(/.test(blockLine)) {
-        kind = 'method_definition';
-        const methodName = blockLine.match(/([A-Za-z_$][\w$]*)\s*\(/);
-        if (methodName) name = methodName[1];
-      } else {
-        kind = blockMatch[0].trim().split(/\s+/).pop() as string;
-        const nameMatch = nameRe.exec(blockLine);
-        if (nameMatch) {
-          name = nameMatch[1];
-        }
-      }
-    }
-
-    // Best-effort: extract called identifiers within the block body.
-    const calls: string[] = [];
-    const callSeen = new Set<string>();
-    // @illusion: scan_block_calls -> walks block lines -> collects called identifiers
-    for (let k = i + 1; k <= end; k++) {
-      const line = lines[k];
-      if (re.test(line)) break;
-      let cm: RegExpExecArray | null;
-      callRe.lastIndex = 0;
-      // @illusion: match_calls -> iterates regex hits -> records unique call names
-      while ((cm = callRe.exec(line)) !== null) {
-        const candidate = cm[1];
-        if (!callSeen.has(candidate) && !DECL_KEYWORDS.has(candidate) && candidate !== name) {
-          callSeen.add(candidate);
-          calls.push(candidate);
-        }
-      }
-    }
-
-    const label = m[1]
-      .trim()
-      .replace(/\*\/\s*$/, '')
-      .trim();
+    const endLine = Math.max(blockEnd, i);
+    const calls = extractCallsLines(lines, i, endLine);
     cards.push({
-      id: `${i + 1}:${end + 1}:${kind}`,
+      id: `${i + 1}:${endLine + 1}:${kind}`,
       startLine: i + 1,
-      endLine: end + 1,
+      endLine: endLine + 1,
       kind,
       name,
       label,
-      code: lines.slice(i, end + 1).join('\n'),
+      code: lines.slice(blockStart, endLine + 1).join('\n'),
       calls,
       narrative: null,
     });
+    i = endLine + 1;
   }
-  return cards;
+
+  // Deduplicate: if a card has a label and another identical card (same name/kind) doesn't, keep the labelled one
+  const deduped: Card[] = [];
+  const seenKey = new Set<string>();
+  for (const c of cards) {
+    if (c.label) {
+      deduped.push(c);
+      seenKey.add(`${c.kind}:${c.name}`);
+    } else if (!seenKey.has(`${c.kind}:${c.name}`)) {
+      deduped.push(c);
+    }
+  }
+  return deduped;
 }
 
 export interface AnalyzeOptions {
@@ -262,10 +339,11 @@ export async function analyzeDocument(
 ): Promise<AnalysisResult> {
   const fa = await analyzeFileCore(source, languageId, filePath, options);
   if (fa.grammarUsed) {
-    // Cross-file: resolve imported functions one level deep (relative named imports).
+    // Cross-file: resolve imported functions recursively (relative named imports).
     let externalResolver: ((name: string) => string | null) | undefined;
     if (filePath && fa.importMap.size > 0) {
-      const externalLabels = await resolveExternalLabels(fa.importMap);
+      const narrativeDepth = options?.narrativeDepth ?? getLanguageConfig(languageId)?.narrativeDepth ?? 2;
+      const externalLabels = await resolveExternalLabels(fa.importMap, narrativeDepth);
       externalResolver = (name) => externalLabels.get(name) ?? null;
     }
 

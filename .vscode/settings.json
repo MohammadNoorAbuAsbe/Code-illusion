@@ -1,0 +1,14 @@
+{
+  "codeIllusion.autoGenerateArtifacts": true,
+  "codeIllusion.narrativeDepth": 3,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "eslint.validate": ["typescript"],
+  "files.exclude": {
+    "dist/": false,
+    "node_modules/": true,
+    "code-illusion-out/": false
+  }
+}

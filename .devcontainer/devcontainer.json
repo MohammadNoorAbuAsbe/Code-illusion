@@ -1,0 +1,14 @@
+{
+  "name": "Code Illusion De-tangler",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  "postCreateCommand": "npm ci && npm run build",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "codeillusion.code-illusion-detangler"
+      ]
+    }
+  }
+}

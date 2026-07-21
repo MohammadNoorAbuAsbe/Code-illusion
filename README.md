@@ -1,5 +1,10 @@
 # Code Illusion De-tangler
 
+[![CI](https://github.com/codeillusion/vscode-code-illusion-detangler/actions/workflows/ci.yml/badge.svg)](https://github.com/codeillusion/vscode-code-illusion-detangler/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/code-illusion-detangler.svg)](https://www.npmjs.com/package/code-illusion-detangler)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/code-illusion.code-illusion-detangler.svg)](https://marketplace.visualstudio.com/items?itemName=code-illusion.code-illusion-detangler)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Renders AI/agent-written code as a side-by-side **De-cluttered View** of semantic micro-cards.
 
 **Standalone CLI** (no editor required) + **optional VS Code extension**. Agents annotate blocks
@@ -73,6 +78,7 @@ Then press `F5` in VS Code to launch the Extension Development Host.
 
 | Command | Keybinding | Description |
 |---------|-----------|-------------|
+| Code Illusion: Jump to Next Missing Annotation | `Ctrl+Alt+I` / `Cmd+Alt+I` | Jump cursor to the next unannotated block |
 | Code Illusion: Open De-cluttered View | `Ctrl+Alt+D` / `Cmd+Alt+D` | Open side-by-side card view |
 | Code Illusion: Open Project Story | — | Open unified cross-file execution-flow story |
 | Code Illusion: Check Coverage | — | List unannotated blocks in Problems |

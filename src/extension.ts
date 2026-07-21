@@ -9,6 +9,8 @@ import { analyzeEditor, getActiveEditor } from './commands/util';
 import { showDeclutteredView, isPanelOpen } from './webview/panel';
 import { analyzeProject, resolveInputs } from './core/project';
 import { buildArtifacts, writeArtifacts, writeGitignore } from './core/export';
+import { analyzeDocument } from './core/annotations';
+import { languageIdFromPath } from './core/languages';
 
 let debounceTimer: NodeJS.Timeout | null = null;
 let artifactGenTimer: NodeJS.Timeout | null = null;
@@ -61,6 +63,29 @@ const SUPPORTED_EXT = new Set([
   '.py', '.java', '.cs', '.go', '.rs',
 ]);
 
+// @illusion: jump_to_next_missing -> finds next unannotated block -> reveals it in editor
+async function jumpToNextMissing(): Promise<void> {
+  const editor = getActiveEditor();
+  const doc = editor.document;
+  const source = doc.getText();
+  const languageId = languageIdFromPath(doc.fileName);
+  if (!languageId) {
+    vscode.window.showInformationMessage('Code Illusion: unsupported language');
+    return;
+  }
+  const result = await analyzeDocument(source, languageId, doc.fileName);
+  const missing = result.cards.filter((c) => c.label == null).sort((a, b) => a.startLine - b.startLine);
+  if (missing.length === 0) {
+    vscode.window.showInformationMessage('Code Illusion: no missing annotations');
+    return;
+  }
+  const cursorLine = editor.selection.active.line + 1;
+  const nextMissing = missing.find((m) => m.startLine > cursorLine) ?? missing[0];
+  const pos = new vscode.Position(nextMissing.startLine - 1, 0);
+  editor.selection = new vscode.Selection(pos, pos);
+  editor.revealRange(new vscode.Range(pos, pos), vscode.TextEditorRevealType.InCenter);
+}
+
 // @illusion: activate -> registers commands -> schedules artifact gen -> sets up live refresh on editor + save
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -70,6 +95,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('codeIllusion.scaffold', (arg?: unknown) =>
       safe(scaffoldCommand(arg as { uri?: vscode.Uri; line?: number }))
     ),
+    vscode.commands.registerCommand('codeIllusion.jumpNextMissing', () => safe(jumpToNextMissing())),
     vscode.commands.registerCommand('codeIllusion.initRules', () => safe(initRulesCommand(context))),
     vscode.commands.registerCommand('codeIllusion.initRulesForce', () => safe(initRulesCommand(context, true)))
   );

@@ -73,18 +73,22 @@ export function extractImports(tree: { rootNode: TSNode }, sourceDir: string): M
   return result;
 }
 
-// Cache of parsed-target-file name -> @illusion label maps, keyed by path + mtime.
-const labelCache = new Map<string, Map<string, string>>();
+// Cache of parsed-target-file data, keyed by path + mtime.
+interface FileData {
+  labels: Map<string, string>;
+  imports: Map<string, ImportRef>;
+}
+const fileDataCache = new Map<string, FileData | null>();
 
-// @illusion: load_file_labels -> parses one target file -> maps exported fn name -> @illusion label
-async function loadFileLabels(file: string): Promise<Map<string, string> | null> {
+// @illusion: load_file_data -> parses one target file -> returns labels + imports
+async function loadFileData(file: string): Promise<FileData | null> {
   const lang = languageIdFromPath(file);
   if (!lang) return null;
   const cfg = getLanguageConfig(lang);
   if (!cfg || !cfg.grammar) return null;
 
   let stat: fs.Stats;
-  // @illusion: guard_stat -> ignores unreadable file -> returns null labels
+  // @illusion: guard_stat -> ignores unreadable file -> returns null
   try {
     stat = fs.statSync(file);
   } catch {
@@ -92,57 +96,73 @@ async function loadFileLabels(file: string): Promise<Map<string, string> | null>
   }
 
   const cacheKey = `${file}:${stat.mtimeMs}`;
-  const cached = labelCache.get(cacheKey);
+  const cached = fileDataCache.get(cacheKey);
   if (cached) return cached;
 
   let src: string;
-  // @illusion: guard_read -> ignores unreadable file -> returns null labels
+  // @illusion: guard_read -> ignores unreadable file -> returns null
   try {
     src = fs.readFileSync(file, 'utf8');
   } catch {
     return null;
   }
 
-  // @illusion: guard_parse -> ignores parse failure -> returns null labels
+  // @illusion: guard_parse -> ignores parse failure -> returns null
   try {
     const tree = await parse(src, cfg.grammar);
     const blocks = extractBlocks(tree);
     const labels = new Map<string, string>();
-    // @illusion: map_block_labels -> walks blocks -> records exported name -> @illusion label
     for (const b of blocks) {
       if (b.name) {
         const label = extractLabel(precedingComments(b.node));
         if (label) labels.set(b.name, label);
       }
     }
-    labelCache.set(cacheKey, labels);
-    return labels;
+    const imports = extractImports(tree, path.dirname(file));
+    const fd: FileData = { labels, imports };
+    fileDataCache.set(cacheKey, fd);
+    return fd;
   } catch {
     return null;
   }
 }
 
-// @illusion: resolve_external_labels -> resolves imported names -> their @illusion labels (one level)
-export async function resolveExternalLabels(importMap: Map<string, ImportRef>): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
-  const fileCache = new Map<string, Map<string, string> | null>();
+// @illusion: resolve_external_labels_recursive -> walks import chain -> builds transitive label map
+async function resolveExternalLabelsRecursive(
+  importMap: Map<string, ImportRef>,
+  depth: number,
+  maxDepth: number,
+  visited: Set<string>,
+  result: Map<string, string>
+): Promise<void> {
+  if (depth > maxDepth) return;
 
-  // @illusion: resolve_imports -> walks imported names -> loads target file labels
   for (const [local, { file, exported }] of importMap) {
-    if (out.has(local)) continue;
-    // @illusion: guard_resolve -> ignores per-file resolution error -> skips import
-    try {
-      let labels = fileCache.get(file);
-      if (labels === undefined) {
-        labels = await loadFileLabels(file);
-        fileCache.set(file, labels);
-      }
-      const lbl = labels?.get(exported);
-      if (lbl) out.set(local, lbl);
-    } catch {
-      // Skip unresolvable imports gracefully.
+    if (result.has(local)) continue;
+    const fileKey = `${file}:${exported}`;
+    if (visited.has(fileKey)) continue;
+    visited.add(fileKey);
+
+    const fd = await loadFileData(file);
+    if (!fd) continue;
+
+    const lbl = fd.labels.get(exported);
+    if (lbl) result.set(local, lbl);
+
+    // @illusion: recurse_sub_imports -> follows transitive imports -> builds deeper labels
+    if (depth < maxDepth && fd.imports.size > 0) {
+      await resolveExternalLabelsRecursive(fd.imports, depth + 1, maxDepth, visited, result);
     }
   }
+}
 
-  return out;
+// @illusion: resolve_external_labels -> resolves imported names -> their @illusion labels (recursive)
+export async function resolveExternalLabels(
+  importMap: Map<string, ImportRef>,
+  maxDepth: number = 2
+): Promise<Map<string, string>> {
+  const result = new Map<string, string>();
+  const visited = new Set<string>();
+  await resolveExternalLabelsRecursive(importMap, 0, maxDepth, visited, result);
+  return result;
 }

@@ -14,6 +14,7 @@ export const LANGUAGES: Record<string, LanguageConfig> = {
   csharp: { grammar: 'c-sharp', comment: LINE('//'), highlight: 'csharp' },
   go: { grammar: 'go', comment: LINE('//'), highlight: 'go' },
   rust: { grammar: 'rust', comment: LINE('//'), highlight: 'rust' },
+  html: { grammar: '', comment: { kind: 'html', open: '<!--', close: '-->' }, highlight: 'html' },
   // Fallback comment style for the regex path (used when no grammar is available)
   _default: { grammar: '', comment: LINE('//'), highlight: 'plaintext' },
 };

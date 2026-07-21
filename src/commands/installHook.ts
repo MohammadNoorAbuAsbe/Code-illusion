@@ -58,6 +58,7 @@ export function installPrecommitHook(rootDir?: string): string {
 
   fs.writeFileSync(hookPath, HOOK_CONTENT, 'utf8');
   // Make executable on posix
+  // @illusion: make_executable -> chmods hook -> ignores failure on Windows
   try {
     fs.chmodSync(hookPath, 0o755);
   } catch {

@@ -1,6 +1,4 @@
-# CLAUDE.md — Code Illusion Agent Annotation Standard
-
-(Shared project standard. Also available as `AGENTS.md`.)
+# GEMINI.md — Code Illusion Agent Annotation Standard
 
 This project uses the **Code Illusion De-tangler** VS Code extension, which renders code as a
 side-by-side "De-cluttered View": original code on the left, collapsed semantic micro-cards on the
@@ -40,6 +38,7 @@ Before reading or editing source files, check if `code-illusion-out/COVERAGE.md`
 ## Helper commands
 
 - `Code Illusion: Open De-cluttered View` — side-by-side cards (missing => `⚠ missing` badge). Keybinding: `Ctrl+Alt+D` / `Cmd+Alt+D`.
+- `Code Illusion: Jump to Next Missing Annotation` — jump cursor to next unannotated block. Keybinding: `Ctrl+Alt+I` / `Cmd+Alt+I`.
 - `Code Illusion: Open Project Story` — unified, cross-file execution-flow story of the whole project.
 - `Code Illusion: Check Coverage` — lists unannotated blocks in Problems.
 - `Code Illusion: Scaffold Annotations` — inserts `@illusion: <TODO ...>` placeholders above gaps.
@@ -49,8 +48,10 @@ Before reading or editing source files, check if `code-illusion-out/COVERAGE.md`
 
 The editor-free analysis engine also runs from the CLI or an MCP server (`npm run build` first).
 
- **CLI (`code-illusion`)** — subcommands `check`, `story`, `narrative`, `analyze`, `scaffold`, `generate`, `hook`; flags
-`--json`, `--depth N` (1–6), `--write` (scaffold only), `--out DIR` (generate only). `<path>` is a file, directory, or glob:
+ **CLI (`code-illusion`)** — subcommands `check`, `story`, `narrative`, `analyze`, `scaffold`, `generate`, `hook`,
+`install`, `uninstall`, `list`, `serve`; flags `--json`, `--depth N` (1–6), `--write` (scaffold only), `--out DIR`
+(generate only), `--platform NAME` (install/uninstall), `--force` (install), `--purge` (uninstall). `<path>` is a
+file, directory, or glob:
 
 ```bash
 code-illusion check "src/**/*.ts"
@@ -58,8 +59,8 @@ code-illusion story ./src
 code-illusion scaffold ./src --write
 ```
 
- **MCP server (`code-illusion-mcp`)** — register over stdio with any MCP client (Claude Desktop,
-opencode, etc.). Tools: `check_coverage`, `get_story`, `get_narrative`, `scaffold_missing`, `generate_artifacts`
+  **MCP server (`code-illusion-mcp`)** — register over stdio with any MCP client (Claude Desktop,
+opencode, etc.). Five tools: `check_coverage`, `get_story`, `get_narrative`, `scaffold_missing`, `generate_artifacts`
 (each takes `file` / `directory` / `pattern`):
 
 ```json

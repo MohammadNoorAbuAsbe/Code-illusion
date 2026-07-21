@@ -71,6 +71,7 @@ function fail(message: string, code = 2): never {
 function parseArgs(argv: string[]): Parsed {
   const options: CliOptions = { json: false, write: false, force: false, purge: false };
   const positionals: string[] = [];
+  // @illusion: iterate_args -> walks argv -> parses options -> collects positionals
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--json') options.json = true;
@@ -162,7 +163,9 @@ async function main(): Promise<void> {
       for (const p of allPlatforms()) {
         const result = installPlatform(p.name, root, options.force);
         total += result.filesWritten.length;
+        // @illusion: print_errors -> iterates errors -> writes each to stderr
         for (const e of result.errors) process.stderr.write(`  [${p.name}] ${e}\n`);
+        // @illusion: print_written -> iterates written files -> writes each relative path
         for (const w of result.filesWritten) process.stdout.write(`  [${p.name}] wrote ${path.relative(root, w)}\n`);
       }
       process.stdout.write(`code-illusion: installed rules for ${allPlatforms().length} platform(s) (${total} file(s))\n`);
@@ -254,6 +257,7 @@ async function runSingleFile(command: string, abs: string, options: CliOptions):
           process.stdout.write('  100% annotated.\n');
         } else {
           process.stdout.write(`  missing (${cov.missing.length}):\n`);
+          // @illusion: print_missing -> iterates missing blocks -> writes each to stdout
           for (const m of cov.missing) {
             const name = m.name ? ` ${m.name}` : '';
             process.stdout.write(`    - ${m.kind}${name} (lines ${m.startLine}-${m.endLine})\n`);
@@ -298,6 +302,7 @@ async function runSingleFile(command: string, abs: string, options: CliOptions):
 // @illusion: run_project -> runs unified analysis -> renders command across all files
 async function runProject(command: string, files: string[], options: CliOptions): Promise<void> {
   const pa: ProjectAnalysis = await analyzeProject(files, { narrativeDepth: options.depth });
+  // @illusion: out -> writes text to stdout -> shortcuts process.stdout.write
   const out = (s: string) => process.stdout.write(s);
 
   switch (command) {
@@ -312,6 +317,7 @@ async function runProject(command: string, files: string[], options: CliOptions)
           out('  100% annotated.\n');
         } else {
           out(`  missing (${missing.length}):\n`);
+          // @illusion: print_missing_blocks -> iterates missing -> writes each with file path
           for (const m of missing) {
             const name = m.name ? ` ${m.name}` : '';
             out(`    - ${m.file}: ${m.kind}${name} (lines ${m.startLine}-${m.endLine})\n`);
@@ -417,6 +423,7 @@ async function writeOrPrintScaffold(
 ): Promise<void> {
   if (options.write) {
     let text = source;
+    // @illusion: insert_proposals -> iterates placeholders -> inserts each into source text
     for (const p of proposals) {
       const lines = text.split('\n');
       const indent = (lines[p.line - 1] ?? '').match(/^\s*/)?.[0] ?? '';
@@ -428,6 +435,7 @@ async function writeOrPrintScaffold(
   } else if (options.json) {
     process.stdout.write(JSON.stringify(proposals, null, 2) + '\n');
   } else {
+    // @illusion: print_proposals -> iterates proposals -> writes each line:snippet to stdout
     for (const p of proposals) process.stdout.write(`L${p.line}: ${p.snippet}\n`);
     if (proposals.length === 0) process.stdout.write('(nothing to scaffold)\n');
     else process.stdout.write(`\nRun with --write to insert ${proposals.length} placeholder(s) into the file.\n`);

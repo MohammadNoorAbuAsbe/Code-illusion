@@ -57,12 +57,14 @@ export interface ArtifactFile {
 // @illusion: compute_god_nodes -> counts in-degree per card from call edges -> sorted desc
 export function computeGodNodes(allCards: Card[], edges: CallGraphEdge[]): GodNodeInfo[] {
   const inDegree = new Map<string, number>();
+  // @illusion: count_in_degree -> iterates edges -> accumulates callee reference counts
   for (const e of edges) {
     if (e.external) continue;
     inDegree.set(e.calleeCardId, (inDegree.get(e.calleeCardId) ?? 0) + 1);
   }
   const cardMap = new Map(allCards.map((c) => [c.id, c]));
   const result: GodNodeInfo[] = [];
+  // @illusion: build_god_nodes -> iterates in-degree map -> builds sorted god node list
   for (const [id, count] of inDegree) {
     const card = cardMap.get(id);
     if (card) result.push({ card, inDegree: count });
@@ -75,6 +77,7 @@ export function computeGodNodes(allCards: Card[], edges: CallGraphEdge[]): GodNo
 export function computeSurprisingConnections(allCards: Card[], edges: CallGraphEdge[]): SurprisingConnection[] {
   const cardMap = new Map(allCards.map((c) => [c.id, c]));
   const result: SurprisingConnection[] = [];
+  // @illusion: find_cross_file_edges -> iterates edges -> collects cross-module connections
   for (const e of edges) {
     if (e.external) continue;
     const caller = cardMap.get(e.callerCardId);
@@ -96,6 +99,7 @@ export function computeSurprisingConnections(allCards: Card[], edges: CallGraphE
 // @illusion: compute_directory_coverage -> groups cards by directory -> computes per-dir stats
 export function computeDirectoryCoverage(allCards: Card[]): DirectoryCoverage[] {
   const dirs = new Map<string, { annotated: number; total: number }>();
+    // @illusion: <TODO: describe (for_in_statement)>
   for (const c of allCards) {
     const dir = c.filePath ? path.dirname(c.filePath) : '(unknown)';
     const entry = dirs.get(dir) ?? { annotated: 0, total: 0 };
@@ -104,6 +108,7 @@ export function computeDirectoryCoverage(allCards: Card[]): DirectoryCoverage[] 
     dirs.set(dir, entry);
   }
   const result: DirectoryCoverage[] = [];
+  // @illusion: build_dir_coverage -> iterates directory stats -> builds sorted coverage list
   for (const [directory, { annotated, total }] of dirs) {
     result.push({
       directory,
@@ -120,6 +125,7 @@ export function computeDirectoryCoverage(allCards: Card[]): DirectoryCoverage[] 
 export function computePriorityGaps(allCards: Card[], edges: CallGraphEdge[]): PriorityGap[] {
   const inDegree = new Map<string, { count: number; callers: string[] }>();
   const cardMap = new Map(allCards.map((c) => [c.id, c]));
+  // @illusion: count_callee_refs -> iterates edges -> aggregates in-degree per callee card
   for (const e of edges) {
     if (e.external) continue;
     const entry = inDegree.get(e.calleeCardId) ?? { count: 0, callers: [] };
@@ -130,6 +136,7 @@ export function computePriorityGaps(allCards: Card[], edges: CallGraphEdge[]): P
     inDegree.set(e.calleeCardId, entry);
   }
   const result: PriorityGap[] = [];
+  // @illusion: find_priority_gaps -> iterates all cards -> collects called-but-unannotated blocks
   for (const c of allCards) {
     if (c.label != null) continue;
     const degree = inDegree.get(c.id);
@@ -227,6 +234,7 @@ export function formatCoverageMarkdown(
     lines.push('## Coverage by Directory', '');
     lines.push('| Directory | Annotated | Total | % |');
     lines.push('|-----------|-----------|-------|---|');
+    // @illusion: render_dir_table -> iterates dir coverage -> formats each as a markdown row
     for (const dc of dirCoverage) {
       const dir = dc.directory === '(unknown)' ? '(unknown)' : path.relative(process.cwd(), dc.directory) || '.';
       lines.push(`| \`${dir}\` | ${dc.annotated} | ${dc.total} | ${dc.percent}% |`);
@@ -364,6 +372,7 @@ export function ensureOutDir(outDir?: string): string {
 export function writeArtifacts(artifacts: ArtifactFile[], outDir?: string): string[] {
   const dir = ensureOutDir(outDir);
   const written: string[] = [];
+  // @illusion: write_all_artifacts -> iterates artifacts -> writes each to output directory
   for (const a of artifacts) {
     const absPath = path.join(dir, a.path);
     fs.writeFileSync(absPath, a.content, 'utf8');
@@ -378,6 +387,7 @@ export function writeGitignore(outDir?: string): void {
   const gitignorePath = path.join(dir, '..', '.gitignore');
   const entry = path.basename(dir) + '/cache';
   let content = '';
+  // @illusion: read_gitignore -> tries to read existing .gitignore -> handles missing file
   try {
     content = fs.readFileSync(gitignorePath, 'utf8');
   } catch {

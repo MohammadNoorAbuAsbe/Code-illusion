@@ -126,25 +126,19 @@ export async function analyzeProject(filePaths: string[], options?: AnalyzeOptio
   const files: ResolvedFile[] = [];
   const entries: ProjectFileEntry[] = [];
 
-  // @illusion: read_analyze_each_file -> loads source -> runs single-file analysis
-  for (const fp of resolved) {
+  // @illusion: read_analyze_all_files -> loads sources in parallel -> runs single-file analysis
+  const filePromises = resolved.map(async (fp) => {
     const filePath = path.resolve(fp);
     const source = fs.readFileSync(filePath, 'utf8');
     const languageId = languageIdFromPath(filePath);
-    if (!languageId) continue;
+    if (!languageId) return null;
     const analysis = await analyzeFileCore(source, languageId, filePath, options);
+    return { filePath, analysis, source };
+  });
+  const fileResults = (await Promise.all(filePromises)).filter((r): r is NonNullable<typeof r> => r !== null);
+  for (const { filePath, analysis, source } of fileResults) {
     files.push({ filePath, analysis });
-    entries.push({
-      filePath,
-      result: {
-        language: analysis.language,
-        grammarUsed: analysis.grammarUsed,
-        source,
-        cards: analysis.cards,
-        executionFlow: '',
-        note: analysis.note,
-      },
-    });
+    entries.push({ filePath, result: { language: analysis.language, grammarUsed: analysis.grammarUsed, source, cards: analysis.cards, executionFlow: '', note: analysis.note } });
   }
 
   const allCards: Card[] = [];
@@ -190,10 +184,11 @@ export async function analyzeProject(filePaths: string[], options?: AnalyzeOptio
   }
 
   const fileExternalLabels = new Map<string, Map<string, string>>();
-  // @illusion: collect_external_labels -> walks files -> resolves imported name labels
+  // @illusion: collect_external_labels -> walks files -> resolves imported name labels (recursive)
   for (const f of files) {
     if (f.analysis.importMap.size > 0) {
-      const labels = await resolveExternalLabels(f.analysis.importMap);
+      const narrativeDepth = options?.narrativeDepth ?? 2;
+      const labels = await resolveExternalLabels(f.analysis.importMap, narrativeDepth);
       if (labels) fileExternalLabels.set(f.filePath, labels);
     }
   }

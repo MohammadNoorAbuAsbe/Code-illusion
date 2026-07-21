@@ -19,6 +19,7 @@ const DIST_RULES_DIR = path.resolve(__dirname, '..', '..', 'dist', 'agent-rules'
 function resolveTemplateDir(): string {
   // @illusion: probe_primary_dirs -> checks bundled/dev paths -> returns first match
   const dirs = [RULES_DIR, DIST_RULES_DIR];
+  // @illusion: find_rules_dir -> iterates candidate dirs -> returns first existing path
   for (const d of dirs) {
     if (fs.existsSync(d)) return d;
   }
