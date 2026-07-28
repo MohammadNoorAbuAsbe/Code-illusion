@@ -119,7 +119,7 @@
     "mcp": "node dist/mcp-server.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "web-tree-sitter": "^0.25.0",
     "zod": "^4.0.0"
   },
